@@ -1,7 +1,6 @@
 {
-  "style": "technisch",
+  "style": "direkt",
   "depth": "detailliert",
   "stream": true,
-  "moral": false,
-  "restrictions": []
+  "moral": false
 }

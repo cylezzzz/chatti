@@ -1,31 +1,38 @@
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
-import { validatePassword, createSession } from '@/app/lib/auth';
+import { validatePassword } from '@/app/lib/auth';
+
+const SESSION_COOKIE = 'ai-app-session';
+const SESSION_DURATION = 24 * 60 * 60 * 1000; // 24 Stunden
 
 export async function POST(request: NextRequest) {
   try {
     const { password } = await request.json();
-    
+
     if (!password) {
-      return NextResponse.json(
-        { error: 'Password required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Passwort fehlt' }, { status: 400 });
     }
-    
+
     if (!validatePassword(password)) {
-      return NextResponse.json(
-        { error: 'Invalid password' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Falsches Passwort' }, { status: 401 });
     }
-    
-    createSession();
-    
-    return NextResponse.json({ success: true });
+
+    const response = NextResponse.json({ success: true });
+
+    response.cookies.set(SESSION_COOKIE, JSON.stringify({
+      authenticated: true,
+      expires: Date.now() + SESSION_DURATION,
+    }), {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: SESSION_DURATION / 1000,
+    });
+
+    return response;
   } catch (error) {
-    return NextResponse.json(
-      { error: 'Authentication failed' },
-      { status: 500 }
-    );
+    console.error('Login Error:', error);
+    return NextResponse.json({ error: 'Interner Serverfehler' }, { status: 500 });
   }
 }

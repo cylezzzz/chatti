@@ -11,17 +11,24 @@ export default function LoginForm() {
   const router = useRouter()
 
   const handleLogin = async () => {
-    const res = await fetch('/api/auth/login', {
-      method: 'POST',
-      body: JSON.stringify({ password }),
-    })
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json', // 🛠️ Notwendig für JSON
+        },
+        body: JSON.stringify({ password }),
+      })
 
-    if (res.ok) {
-      const { role } = await res.json()
-      toast({ title: `✅ Erfolgreich eingeloggt als ${role}` })
-      router.refresh()
-    } else {
-      toast({ title: '❌ Falsches Passwort', variant: 'destructive' })
+      if (res.ok) {
+        const { role } = await res.json()
+        toast({ title: `✅ Erfolgreich eingeloggt als ${role}` })
+        router.refresh()
+      } else {
+        toast({ title: '❌ Falsches Passwort', variant: 'destructive' })
+      }
+    } catch (error) {
+      toast({ title: '💥 Serverfehler beim Login', variant: 'destructive' })
     }
   }
 
@@ -29,7 +36,6 @@ export default function LoginForm() {
     <div className="w-full max-w-sm mx-auto mt-32 p-6 bg-gray-900 rounded-lg shadow">
       <h2 className="text-xl font-semibold text-center mb-4">🔐 Login</h2>
 
-      {/* 👇 Hier dein Hinweis-Text */}
       <p className="text-sm text-muted-foreground mb-4 text-center">
         Gib dein <strong>Admin</strong>- oder <strong>Gast</strong>-Passwort ein.
       </p>
