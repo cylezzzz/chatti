@@ -1,0 +1,61 @@
+{
+  "id": "code-analyzer",
+  "name": "Code Analyzer",
+  "description": "Analyze and review code files for quality, security, and best practices",
+  "category": "Development",
+  "version": "1.0.0",
+  "enabled": true,
+  "nsfw": false,
+  "prompt": "Analyze the following {{language}} code for quality, security issues, and best practices. Focus on: {{focus}}. Code: {{code}}",
+  "icon": "💻",
+  "color": "#8b5cf6",
+  "fields": [
+    {
+      "name": "code",
+      "type": "textarea",
+      "label": "Code to Analyze",
+      "placeholder": "Paste your code here...",
+      "required": true,
+      "description": "The code you want to analyze"
+    },
+    {
+      "name": "language",
+      "type": "select",
+      "label": "Programming Language",
+      "required": true,
+      "defaultValue": "javascript",
+      "options": [
+        "javascript",
+        "typescript",
+        "python",
+        "java",
+        "c++",
+        "c#",
+        "go",
+        "rust",
+        "php",
+        "ruby",
+        "swift",
+        "kotlin"
+      ],
+      "description": "Select the programming language"
+    },
+    {
+      "name": "focus",
+      "type": "select",
+      "label": "Analysis Focus",
+      "required": false,
+      "defaultValue": "general",
+      "options": [
+        "general",
+        "security",
+        "performance",
+        "best practices",
+        "code style",
+        "bugs",
+        "optimization"
+      ],
+      "description": "What aspect should the analysis focus on?"
+    }
+  ]
+}

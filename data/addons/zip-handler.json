@@ -1,0 +1,45 @@
+{
+  "id": "zip-handler",
+  "name": "ZIP Handler",
+  "description": "Extract, analyze, and manipulate ZIP archive contents",
+  "category": "File Management",
+  "version": "1.0.0",
+  "enabled": true,
+  "nsfw": false,
+  "prompt": "Process the uploaded ZIP file. Action: {{action}}. {{additional_instructions}}",
+  "icon": "📁",
+  "color": "#f59e0b",
+  "fields": [
+    {
+      "name": "zipfile",
+      "type": "file",
+      "label": "ZIP File",
+      "required": true,
+      "accept": ".zip,.rar,.7z",
+      "description": "Upload the archive file to process"
+    },
+    {
+      "name": "action",
+      "type": "select",
+      "label": "Action",
+      "required": true,
+      "defaultValue": "extract",
+      "options": [
+        "extract",
+        "analyze",
+        "list contents",
+        "find files",
+        "compress"
+      ],
+      "description": "What do you want to do with the archive?"
+    },
+    {
+      "name": "additional_instructions",
+      "type": "textarea",
+      "label": "Additional Instructions",
+      "placeholder": "Any specific instructions for processing...",
+      "required": false,
+      "description": "Optional: Provide specific instructions"
+    }
+  ]
+}

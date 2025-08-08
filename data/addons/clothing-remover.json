@@ -1,0 +1,69 @@
+{
+  "id": "clothing-remover",
+  "name": "Clothing Remover",
+  "description": "AI-powered clothing removal and body editing tool",
+  "category": "Image Editing",
+  "version": "1.0.0",
+  "enabled": false,
+  "nsfw": true,
+  "prompt": "Process the uploaded image for clothing removal with the following settings: Style: {{style}}, Quality: {{quality}}, Body type: {{body_type}}. Additional instructions: {{additional_instructions}}",
+  "icon": "👕",
+  "color": "#dc2626",
+  "fields": [
+    {
+      "name": "image",
+      "type": "file",
+      "label": "Source Image",
+      "required": true,
+      "accept": "image/*",
+      "description": "Upload the image to process"
+    },
+    {
+      "name": "style",
+      "type": "select",
+      "label": "Processing Style",
+      "required": false,
+      "defaultValue": "realistic",
+      "options": [
+        "realistic",
+        "artistic",
+        "soft",
+        "detailed",
+        "natural"
+      ],
+      "description": "Choose the processing style"
+    },
+    {
+      "name": "quality",
+      "type": "select",
+      "label": "Output Quality",
+      "required": false,
+      "defaultValue": "high",
+      "options": ["standard", "high", "ultra"],
+      "description": "Processing quality level"
+    },
+    {
+      "name": "body_type",
+      "type": "select",
+      "label": "Body Type Preference",
+      "required": false,
+      "defaultValue": "maintain_original",
+      "options": [
+        "maintain_original",
+        "athletic",
+        "curvy",
+        "slim",
+        "average"
+      ],
+      "description": "Body type for the result"
+    },
+    {
+      "name": "additional_instructions",
+      "type": "textarea",
+      "label": "Additional Instructions",
+      "placeholder": "Any specific instructions...",
+      "required": false,
+      "description": "Optional: Provide specific processing instructions"
+    }
+  ]
+}

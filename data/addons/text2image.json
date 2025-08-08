@@ -1,0 +1,64 @@
+{
+  "id": "text2image",
+  "name": "Text to Image",
+  "description": "Generate images from text descriptions using AI",
+  "category": "Image Generation",
+  "version": "1.0.0",
+  "enabled": true,
+  "nsfw": false,
+  "prompt": "Create a detailed image based on this description: {{prompt}}. Style: {{style}}. Quality: {{quality}}. Resolution: {{resolution}}.",
+  "icon": "🎨",
+  "color": "#3b82f6",
+  "fields": [
+    {
+      "name": "prompt",
+      "type": "textarea",
+      "label": "Image Description",
+      "placeholder": "Describe the image you want to generate...",
+      "required": true,
+      "description": "Be as detailed as possible for better results"
+    },
+    {
+      "name": "style",
+      "type": "select",
+      "label": "Art Style",
+      "required": false,
+      "defaultValue": "realistic",
+      "options": [
+        "realistic",
+        "digital art",
+        "oil painting",
+        "watercolor",
+        "pencil sketch",
+        "anime",
+        "cartoon",
+        "abstract"
+      ],
+      "description": "Choose the artistic style for your image"
+    },
+    {
+      "name": "quality",
+      "type": "select",
+      "label": "Quality",
+      "required": false,
+      "defaultValue": "high",
+      "options": ["draft", "standard", "high", "ultra"],
+      "description": "Higher quality takes longer to generate"
+    },
+    {
+      "name": "resolution",
+      "type": "select",
+      "label": "Resolution",
+      "required": false,
+      "defaultValue": "1024x1024",
+      "options": [
+        "512x512",
+        "768x768",
+        "1024x1024",
+        "1280x720",
+        "1920x1080"
+      ],
+      "description": "Output image dimensions"
+    }
+  ]
+}

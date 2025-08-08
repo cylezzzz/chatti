@@ -1,0 +1,57 @@
+{
+  "id": "image2image",
+  "name": "Image to Image",
+  "description": "Transform existing images using AI with text prompts",
+  "category": "Image Editing",
+  "version": "1.0.0",
+  "enabled": true,
+  "nsfw": false,
+  "prompt": "Transform the uploaded image based on this description: {{prompt}}. Style: {{style}}. Strength: {{strength}}. Keep the original composition while applying these changes.",
+  "icon": "🔄",
+  "color": "#10b981",
+  "fields": [
+    {
+      "name": "image",
+      "type": "file",
+      "label": "Source Image",
+      "required": true,
+      "accept": "image/*",
+      "description": "Upload the image you want to transform"
+    },
+    {
+      "name": "prompt",
+      "type": "textarea",
+      "label": "Transformation Description",
+      "placeholder": "Describe how you want to transform the image...",
+      "required": true,
+      "description": "Describe the changes you want to make"
+    },
+    {
+      "name": "style",
+      "type": "select",
+      "label": "Style",
+      "required": false,
+      "defaultValue": "photorealistic",
+      "options": [
+        "photorealistic",
+        "artistic",
+        "cartoon",
+        "sketch",
+        "painting",
+        "digital art"
+      ],
+      "description": "Choose the output style"
+    },
+    {
+      "name": "strength",
+      "type": "range",
+      "label": "Transformation Strength",
+      "required": false,
+      "defaultValue": 0.7,
+      "min": 0.1,
+      "max": 1.0,
+      "step": 0.1,
+      "description": "How much the image should be changed (0.1 = subtle, 1.0 = dramatic)"
+    }
+  ]
+}
