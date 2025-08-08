@@ -1,35 +1,21 @@
-import { cookies } from 'next/headers';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin';
+const GUEST_PASSWORD = process.env.GUEST_PASSWORD || 'guest';
 
-const ADMIN_PASSWORD = 'admin123'; // In production, use environment variables
-const SESSION_COOKIE = 'ai-app-session';
-const SESSION_DURATION = 24 * 60 * 60 * 1000; // 24 hours
+export type Role = 'admin' | 'guest';
 
-export function isAuthenticated(): boolean {
-  try {
-    const cookieStore = cookies();
-    const session = cookieStore.get(SESSION_COOKIE);
-    
-    if (!session) return false;
-    
-    const sessionData = JSON.parse(session.value);
-    const now = Date.now();
-    
-    return sessionData.expires > now && sessionData.authenticated === true;
-  } catch {
-    return false;
-  }
+export function validatePassword(password: string): Role | null {
+  if (password === ADMIN_PASSWORD) return 'admin';
+  if (password === GUEST_PASSWORD) return 'guest';
+  return null;
 }
 
-export function validatePassword(password: string): boolean {
-  return password === ADMIN_PASSWORD;
-}
-
-export function createSession() {
+export function createSession(role: Role) {
   const sessionData = {
     authenticated: true,
+    role,
     expires: Date.now() + SESSION_DURATION,
   };
-  
+
   const cookieStore = cookies();
   cookieStore.set(SESSION_COOKIE, JSON.stringify(sessionData), {
     httpOnly: true,
@@ -37,9 +23,4 @@ export function createSession() {
     sameSite: 'strict',
     maxAge: SESSION_DURATION / 1000,
   });
-}
-
-export function clearSession() {
-  const cookieStore = cookies();
-  cookieStore.delete(SESSION_COOKIE);
 }

@@ -1,0 +1,5 @@
+
+[
+  { "name": "CodeLlama", "type": "local", "recommended": true },
+  { "name": "DeepCoder", "type": "remote", "recommended": false }
+]
