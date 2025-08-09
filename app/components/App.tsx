@@ -26,7 +26,9 @@ export default function App() {
   }, [dispatch]);
 
   const toggleSidebar = () => {
-    dispatch({ type: 'TOGGLE_SIDEBAR', payload: !state.sidebarOpen });
+    // The TOGGLE_SIDEBAR action in the reducer does not accept a payload.
+    // It simply flips the sidebarOpen boolean itself.
+    dispatch({ type: 'TOGGLE_SIDEBAR' });
   };
 
   return (
