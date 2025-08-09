@@ -15,7 +15,8 @@ import {
   Palette,
   Camera,
   Film,
-  Zap
+  Zap,
+  User
 } from 'lucide-react';
 
 export type ChatMessage = {
@@ -126,8 +127,32 @@ export default function ChatInterface() {
   }, [currentSession]);
 
   const handleQuickAction = (action: typeof QUICK_ACTIONS[0]) => {
-    const quickMessage = action.action;
-    sendToBackend({ text: quickMessage, files: [], selectedMedia: [] });
+    // Setze eine Standard-Nachricht für das entsprechende Addon
+    const addonPrompts = {
+      text2image: 'Erstelle ein Bild: ',
+      image2image: 'Bearbeite das ausgewählte Bild: ',
+      image2video: 'Animiere das ausgewählte Bild zu einem Video: ',
+      face_save: 'Speichere das Gesicht aus dem ausgewählten Bild'
+    };
+    
+    const promptText = addonPrompts[action.id as keyof typeof addonPrompts] || action.action;
+    
+    // Öffne den entsprechenden Addon-Modus oder sende direkt
+    if (action.id === 'image2image' || action.id === 'image2video' || action.id === 'face_save') {
+      if (selectedMedia.length === 0) {
+        // Zeige Hinweis, dass Medien ausgewählt werden müssen
+        setMessages(prev => [...prev, {
+          id: crypto.randomUUID(),
+          role: 'assistant',
+          text: `🔔 **${action.label}**: Bitte wähle zuerst ein Bild aus, indem du auf ein generiertes Bild klickst.`,
+          timestamp: Date.now(),
+          contentType: 'text'
+        }]);
+        return;
+      }
+    }
+    
+    sendToBackend({ text: promptText, files: [], selectedMedia: [] });
     setShowQuickActions(false);
   };
 
@@ -373,12 +398,64 @@ export default function ChatInterface() {
 
       {/* Message List */}
       <div className="flex-1 overflow-y-auto">
-        <MessageList messages={messages} />
+        <MessageList 
+          messages={messages} 
+          selectedMedia={selectedMedia}
+          onMediaSelect={handleMediaSelect}
+        />
         <div ref={endRef} />
       </div>
 
       {/* Input */}
       <div className="border-t border-slate-700/50 bg-slate-800/50 backdrop-blur-sm">
+        {/* Quick Action Buttons oberhalb der Eingabe */}
+        <div className="p-4 border-b border-slate-700/30">
+          <div className="flex items-center gap-2 mb-3">
+            <Wand2 className="h-4 w-4 text-cyan-400" />
+            <span className="text-sm font-medium text-white">Quick Actions</span>
+            {selectedMedia.length > 0 && (
+              <Badge className="bg-cyan-500/20 text-cyan-300 border-cyan-500/30 text-xs">
+                {selectedMedia.length} Medium{selectedMedia.length !== 1 ? 'en' : ''} ausgewählt
+              </Badge>
+            )}
+          </div>
+          
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            {QUICK_ACTIONS.map((action) => {
+              const isDisabled = (action.id === 'image2image' || action.id === 'image2video' || action.id === 'face_save') && selectedMedia.length === 0;
+              
+              return (
+                <Button
+                  key={action.id}
+                  variant="outline"
+                  size="sm"
+                  className={`h-auto p-3 flex flex-col gap-2 border-slate-600 hover:border-slate-500 transition-all duration-200 ${
+                    isDisabled 
+                      ? 'opacity-50 cursor-not-allowed' 
+                      : 'hover:scale-105 hover:shadow-lg'
+                  }`}
+                  onClick={() => !isDisabled && handleQuickAction(action)}
+                  disabled={isDisabled}
+                  title={isDisabled ? 'Bitte wähle zuerst ein Bild aus' : action.description}
+                >
+                  <div className={`p-2 rounded-lg bg-gradient-to-br ${action.gradient} ${isDisabled ? 'opacity-50' : ''}`}>
+                    <action.icon className="h-5 w-5 text-white" />
+                  </div>
+                  <div className="text-center">
+                    <div className="text-sm font-medium text-white">{action.label}</div>
+                    <div className="text-xs text-slate-400 mt-1">{action.description}</div>
+                  </div>
+                </Button>
+              );
+            })}
+          </div>
+          
+          {/* Hinweis */}
+          <div className="mt-3 text-xs text-slate-500 text-center">
+            💡 Tipp: Klicke auf generierte Bilder, um sie für Bearbeitung oder Animation auszuwählen
+          </div>
+        </div>
+
         <ChatInputWithSelection 
           onSend={sendToBackend} 
           disabled={busy} 
