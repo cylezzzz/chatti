@@ -4,7 +4,7 @@ import { ChatBubble } from "./ChatBubble";
 import { MarkdownMessage } from "./MarkdownMessage";
 import MediaRenderer from "./MediaRenderer";
 import { Badge } from "@/components/ui/badge";
-import { Sparkles, User, Bot } from "lucide-react";
+import { Sparkles, User, Bot, CheckCircle } from "lucide-react"; // ✅ BEHOBEN: CheckCircle import hinzugefügt
 
 export type ChatMessage = {
   id: string;

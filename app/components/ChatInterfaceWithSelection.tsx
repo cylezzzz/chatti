@@ -1,320 +1,213 @@
-'use client';
+"use client";
+import React, { useState, useRef, KeyboardEvent } from "react";
+import { Send, Paperclip, X, Image as ImageIcon, Video } from "lucide-react";
 
-import React, { useState, useEffect, useRef } from 'react';
-import { SelectableMediaMessage } from './SelectableMediaMessage';
-import { ChatInputWithSelection } from './ChatInputWithSelection';
-import { useApp } from '@/app/contexts/AppContext';
+interface SelectedMediaInfo {
+  url: string;
+  type: 'image' | 'video';
+  name?: string;
+}
 
-export type ChatMessage = {
-  id: string;
-  role: 'user' | 'assistant' | 'system';
-  text?: string;
-  media?: Array<
-    | { type: 'image'; url: string; alt?: string }
-    | { type: 'video'; url: string; poster?: string }
-    | { type: 'file'; url: string; name?: string; size?: number }
-  >;
-  timestamp: number;
-  selectedMedia?: string[]; // Referenzen zu ausgewählten Medien
-};
+export function ChatInputWithSelection({
+  onSend,
+  disabled,
+  selectedMedia = [],
+  onClearSelection
+}: {
+  onSend: (payload: { text: string; files: File[]; selectedMedia: string[] }) => void;
+  disabled?: boolean;
+  selectedMedia?: string[];
+  onClearSelection?: () => void;
+}) {
+  const [text, setText] = useState("");
+  const [files, setFiles] = useState<File[]>([]);
+  const fileRef = useRef<HTMLInputElement>(null);
 
-export default function ChatInterfaceWithSelection() {
-  const { state, dispatch } = useApp();
-  const { currentSession } = state;
-  const endRef = useRef<HTMLDivElement>(null);
-  
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    { 
-      id: 'welcome', 
-      role: 'assistant', 
-      text: '**Hi!** Ich bin bereit. Schick Text, Bilder, Videos oder Audio. Du kannst auch **Enter** zum Senden verwenden. Wenn ich Bilder oder Videos generiere, kannst du sie **anklicken um sie zu markieren** und in deiner nächsten Nachricht zu referenzieren.',
-      timestamp: Date.now()
-    },
-  ]);
-  const [busy, setBusy] = useState(false);
-  const [selectedMedia, setSelectedMedia] = useState<string[]>([]);
-
-  // Auto-scroll zu neuen Nachrichten
-  useEffect(() => {
-    endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
-  }, [messages]);
-
-  // Lade Chat-History wenn Session gewechselt wird
-  useEffect(() => {
-    if (currentSession && currentSession.messages.length > 0) {
-      const sessionMessages: ChatMessage[] = currentSession.messages.map(msg => ({
-        id: msg.id,
-        role: msg.role,
-        text: msg.content,
-        timestamp: msg.timestamp,
-        selectedMedia: [], // Keine vorherige Auswahl
-        media: msg.files?.map(file => ({
-          type: file.type.startsWith('image/') ? 'image' as const :
-                file.type.startsWith('video/') ? 'video' as const : 'file' as const,
-          url: file.url,
-          name: file.name,
-          size: file.size
-        }))
-      }));
-      setMessages(sessionMessages);
-    } else {
-      setMessages([
-        { 
-          id: 'welcome', 
-          role: 'assistant', 
-          text: '**Hi!** Ich bin bereit. Schick Text, Bilder, Videos oder Audio. Du kannst auch **Enter** zum Senden verwenden. Wenn ich Bilder oder Videos generiere, kannst du sie **anklicken um sie zu markieren** und in deiner nächsten Nachricht zu referenzieren.',
-          timestamp: Date.now()
-        },
-      ]);
-    }
-    setSelectedMedia([]);
-  }, [currentSession]);
-
-  const handleMediaSelect = (mediaUrl: string, isSelected: boolean) => {
-    setSelectedMedia(prev => {
-      if (isSelected) {
-        return [...prev, mediaUrl];
-      } else {
-        return prev.filter(url => url !== mediaUrl);
-      }
-    });
+  const submit = () => {
+    if (!text.trim() && files.length === 0 && selectedMedia.length === 0) return;
+    onSend({ text, files, selectedMedia });
+    setText("");
+    setFiles([]);
+    if (fileRef.current) fileRef.current.value = "";
+    if (onClearSelection) onClearSelection();
   };
 
-  const clearSelection = () => {
-    setSelectedMedia([]);
-  };
-
-  const sendToBackend = async (payload: { text: string; files: File[]; selectedMedia: string[] }) => {
-    if (!payload.text.trim() && payload.files.length === 0 && payload.selectedMedia.length === 0) return;
-
-    // 1) User-Message erstellen
-    const media = (payload.files || []).map((f) => {
-      const url = URL.createObjectURL(f);
-      if (f.type.startsWith('image/')) return { type: 'image' as const, url, alt: f.name };
-      if (f.type.startsWith('video/')) return { type: 'video' as const, url };
-      return { type: 'file' as const, url, name: f.name, size: f.size };
-    });
-
-    const userMsg: ChatMessage = {
-      id: crypto.randomUUID(),
-      role: 'user',
-      text: payload.text || undefined,
-      media,
-      selectedMedia: payload.selectedMedia, // Speichere die Auswahl
-      timestamp: Date.now(),
-    };
-
-    setMessages((prev) => [...prev, userMsg]);
-
-    // 2) Backend-Request
-    setBusy(true);
-    try {
-      // Bereite Kontext vor (inkl. ausgewählte Medien)
-      let contextText = payload.text || '';
-      if (payload.selectedMedia.length > 0) {
-        contextText += `\n\n[Nutzer hat ${payload.selectedMedia.length} Medium${payload.selectedMedia.length !== 1 ? 'en' : ''} aus dem Chat-Verlauf ausgewählt und referenziert diese in der Nachricht.]`;
-      }
-
-      const requestBody = JSON.stringify({
-        messages: [
-          ...messages.filter(m => m.role !== 'system').map(m => ({
-            role: m.role,
-            content: m.text || '[Media content]'
-          })),
-          { role: 'user', content: contextText }
-        ],
-        model: 'llama3.1-70b',
-        apiEndpoint: 'http://localhost:11434'
-      });
-
-      const response = await fetch('/api/chat/stream', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: requestBody,
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-      }
-
-      // Streaming-Response verarbeiten
-      const reader = response.body?.getReader();
-      const decoder = new TextDecoder();
-      let assistantText = '';
-      
-      // Assistant-Message vorbereiten (könnte Medien generieren)
-      const assistantMsg: ChatMessage = {
-        id: crypto.randomUUID(),
-        role: 'assistant',
-        text: '',
-        timestamp: Date.now(),
-        // Simuliere generierte Medien (in echter Implementation würde dies vom Backend kommen)
-        media: Math.random() > 0.7 ? [
-          {
-            type: 'image' as const,
-            url: `https://picsum.photos/400/300?random=${Date.now()}`,
-            alt: 'Generated image'
-          }
-        ] : undefined
-      };
-      
-      setMessages((prev) => [...prev, assistantMsg]);
-
-      if (reader) {
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-
-          const chunk = decoder.decode(value);
-          const lines = chunk.split('\n');
-
-          for (const line of lines) {
-            if (line.startsWith('data: ')) {
-              const data = line.slice(6);
-              if (data === '[DONE]') continue;
-              
-              try {
-                const parsed = JSON.parse(data);
-                if (parsed.content) {
-                  assistantText += parsed.content;
-                  setMessages((prev) => 
-                    prev.map((msg) => 
-                      msg.id === assistantMsg.id 
-                        ? { ...msg, text: assistantText }
-                        : msg
-                    )
-                  );
-                }
-              } catch (e) {
-                // Ignoriere Parse-Fehler
-              }
-            }
-          }
-        }
-      }
-
-      // Session aktualisieren falls vorhanden
-      if (currentSession) {
-        const updatedMessages = [
-          ...currentSession.messages,
-          {
-            id: userMsg.id,
-            role: userMsg.role,
-            content: userMsg.text || '[Media content with selection]',
-            timestamp: userMsg.timestamp,
-            files: payload.files.map(f => ({
-              id: crypto.randomUUID(),
-              name: f.name,
-              type: f.type,
-              size: f.size,
-              url: URL.createObjectURL(f)
-            }))
-          },
-          {
-            id: assistantMsg.id,
-            role: assistantMsg.role,
-            content: assistantText,
-            timestamp: assistantMsg.timestamp,
-          }
-        ];
-
-        const updatedSession = {
-          ...currentSession,
-          messages: updatedMessages,
-          updatedAt: Date.now(),
-        };
-
-        dispatch({ type: 'SET_CURRENT_SESSION', payload: updatedSession });
-
-        // Session speichern
-        await fetch('/api/chats', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(updatedSession),
-        });
-      }
-
-    } catch (error) {
-      console.error('Chat error:', error);
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: crypto.randomUUID(),
-          role: 'assistant',
-          text: '❌ Entschuldigung, es gab einen Fehler bei der Verarbeitung deiner Nachricht.',
-          timestamp: Date.now(),
-        },
-      ]);
-    } finally {
-      setBusy(false);
-      setSelectedMedia([]); // Auswahl nach dem Senden zurücksetzen
+  const onKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      submit();
     }
   };
 
-  const formatTime = (timestamp: number) => {
-    const date = new Date(timestamp);
-    const now = new Date();
-    const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
+  const removeFile = (index: number) => {
+    setFiles(prev => prev.filter((_, i) => i !== index));
+  };
 
-    if (diffInHours < 24) {
-      return date.toLocaleTimeString('de-DE', { 
-        hour: '2-digit', 
-        minute: '2-digit' 
-      });
-    } else if (diffInHours < 168) { // 7 Tage
-      return date.toLocaleDateString('de-DE', { 
-        weekday: 'short',
-        hour: '2-digit', 
-        minute: '2-digit' 
-      });
-    } else {
-      return date.toLocaleDateString('de-DE', {
-        day: '2-digit',
-        month: '2-digit',
-        hour: '2-digit', 
-        minute: '2-digit' 
-      });
+  const removeSelectedMedia = (mediaUrl: string) => {
+    if (onClearSelection) {
+      onClearSelection();
     }
+  };
+
+  // ✅ BEHOBEN: Verbesserte Dateityp-Erkennung
+  const getFileIcon = (type: string) => {
+    if (type.startsWith('image/')) return '🖼️';
+    if (type.startsWith('video/')) return '🎥';
+    if (type.startsWith('audio/')) return '🎵';
+    if (type.includes('pdf')) return '📄';
+    if (type.includes('document') || type.includes('word')) return '📝';
+    if (type.includes('spreadsheet') || type.includes('excel')) return '📊';
+    if (type.includes('zip') || type.includes('rar')) return '📦';
+    return '📄';
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
+  // ✅ BEHOBEN: Verbesserte Media-Typ-Erkennung
+  const getMediaTypeFromUrl = (url: string): 'image' | 'video' => {
+    const extension = url.split('.').pop()?.toLowerCase() || '';
+    const videoExtensions = ['mp4', 'avi', 'mov', 'webm', 'mkv', 'flv', 'wmv', 'ogv'];
+    const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp', 'tiff'];
+    
+    if (videoExtensions.includes(extension)) {
+      return 'video';
+    }
+    if (imageExtensions.includes(extension)) {
+      return 'image';
+    }
+    
+    // Fallback: prüfe URL-Muster
+    if (url.includes('video') || url.includes('mp4')) return 'video';
+    return 'image'; // Standard fallback
   };
 
   return (
-    <div className="h-full w-full flex flex-col">
-      {/* Message List */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {messages.map((message, index) => {
-          const showTimestamp = index === 0 || 
-            (messages[index - 1] && 
-             message.timestamp - messages[index - 1].timestamp > 300000); // 5 Minuten
-          
-          return (
-            <div key={message.id}>
-              {showTimestamp && (
-                <div className="flex justify-center mb-4">
-                  <span className="text-xs text-zinc-500 bg-zinc-800 px-3 py-1 rounded-full">
-                    {formatTime(message.timestamp)}
+    <div className="border-t border-zinc-800 p-4">
+      {/* Ausgewählte Medien-Vorschau */}
+      {selectedMedia.length > 0 && (
+        <div className="mb-3 p-3 rounded-lg bg-blue-500/10 border border-blue-500/20">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm font-medium text-blue-400">
+              {selectedMedia.length} Medium{selectedMedia.length !== 1 ? 'en' : ''} ausgewählt
+            </span>
+            <button
+              onClick={onClearSelection}
+              className="text-blue-400 hover:text-blue-300 text-sm"
+            >
+              Alle entfernen
+            </button>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {selectedMedia.map((mediaUrl, index) => {
+              const mediaType = getMediaTypeFromUrl(mediaUrl);
+              return (
+                <div
+                  key={index}
+                  className="flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-600/20 border border-blue-500/30 text-sm"
+                >
+                  {mediaType === 'video' ? (
+                    <Video className="w-4 h-4 text-blue-400" />
+                  ) : (
+                    <ImageIcon className="w-4 h-4 text-blue-400" />
+                  )}
+                  <span className="text-blue-300 truncate max-w-[120px]">
+                    {mediaType === 'video' ? 'Video' : 'Bild'} {index + 1}
                   </span>
+                  <button
+                    onClick={() => removeSelectedMedia(mediaUrl)}
+                    className="text-blue-400 hover:text-blue-300 ml-1"
+                    title="Medium entfernen"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
                 </div>
-              )}
-              <SelectableMediaMessage 
-                m={message}
-                selectedMedia={selectedMedia}
-                onMediaSelect={handleMediaSelect}
-              />
-            </div>
-          );
-        })}
-        <div ref={endRef} />
-      </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
-      {/* Chat Input */}
-      <ChatInputWithSelection 
-        onSend={sendToBackend} 
-        disabled={busy} 
-        selectedMedia={selectedMedia}
-        onClearSelection={clearSelection}
-      />
+      {/* Datei-Vorschau */}
+      {files.length > 0 && (
+        <div className="mb-3 flex flex-wrap gap-2">
+          {files.map((file, index) => (
+            <div
+              key={index}
+              className="flex items-center gap-2 px-3 py-2 rounded-lg bg-zinc-800 border border-zinc-700 text-sm"
+            >
+              <span>{getFileIcon(file.type)}</span>
+              <span className="truncate max-w-[150px]">{file.name}</span>
+              <span className="text-zinc-400 text-xs">
+                {formatFileSize(file.size)}
+              </span>
+              <button
+                onClick={() => removeFile(index)}
+                className="text-zinc-400 hover:text-white ml-1"
+                title="Datei entfernen"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Input-Bereich */}
+      <div className="flex items-end gap-3">
+        <button
+          onClick={() => fileRef.current?.click()}
+          className="p-3 rounded-lg border border-zinc-700 hover:bg-zinc-800 transition-colors"
+          title="Datei anhängen"
+          disabled={disabled}
+        >
+          <Paperclip className="w-5 h-5 text-zinc-200" />
+        </button>
+        
+        <input
+          ref={fileRef}
+          type="file"
+          multiple
+          className="hidden"
+          onChange={(e) => {
+            const newFiles = Array.from(e.target.files ?? []);
+            setFiles(prev => [...prev, ...newFiles]);
+          }}
+          accept="image/*,video/*,audio/*,.pdf,.txt,.doc,.docx,.zip,.rar"
+        />
+        
+        <div className="flex-1 relative">
+          <textarea
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            onKeyDown={onKeyDown}
+            rows={Math.min(4, Math.max(1, text.split('\n').length))}
+            placeholder="Nachricht schreiben... (Enter = Senden, Shift+Enter = Neue Zeile)"
+            disabled={disabled}
+            className="w-full resize-none rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-3 text-zinc-100 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all"
+          />
+          
+          {/* Hilfstext */}
+          <div className="absolute -bottom-6 left-0 text-xs text-zinc-500">
+            Enter zum Senden • Shift+Enter für neue Zeile
+            {selectedMedia.length > 0 && ` • ${selectedMedia.length} Medium${selectedMedia.length !== 1 ? 'en' : ''} ausgewählt`}
+          </div>
+        </div>
+        
+        <button
+          onClick={submit}
+          disabled={disabled || (!text.trim() && files.length === 0 && selectedMedia.length === 0)}
+          className="px-4 py-3 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          title="Nachricht senden"
+        >
+          <Send className="w-5 h-5" />
+        </button>
+      </div>
     </div>
   );
 }
