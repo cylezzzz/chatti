@@ -238,7 +238,18 @@ export default function ResizableAddonManager({
         {/* Content */}
         {!isMinimized && (
           <div className="flex flex-col h-full">
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
+            {/*
+             * Tabs von Radix verwenden einen stringbasierten Wert für value und onValueChange.  Unsere
+             * useState-Hooks arbeiten jedoch mit einem Union-Typ ('addons' | 'agents'), sodass die
+             * Standard-Dispatch-Funktion von useState nicht direkt dem erwarteten Handler entspricht.
+             * Wir casten hier den Rückgabewert zu unserem Union-Typ, um Typkompatibilität sicherzustellen
+             * und dennoch die Vorteile von Typsicherheit zu genießen.
+             */}
+            <Tabs
+              value={activeTab}
+              onValueChange={(value) => setActiveTab(value as 'addons' | 'agents')}
+              className="flex-1 flex flex-col"
+            >
               <TabsList className="grid w-full grid-cols-2 m-3 mb-0">
                 <TabsTrigger value="addons" className="flex items-center gap-2">
                   <Bot className="h-4 w-4" />

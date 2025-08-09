@@ -4,8 +4,16 @@ import {MessageList, ChatMessage} from "./MessageList";
 import {ChatInput} from "./ChatInput";
 
 export default function ChatWindow() {
-  const [messages,setMessages] = useState<ChatMessage[]>([
-    {id:"hello", role:"assistant", text:"**Hi!** Ich bin bereit. Schick Text, Bilder oder Videos."}
+  // Die anfängliche Begrüßungsnachricht benötigt einen Zeitstempel, um dem
+  // ChatMessage-Typ zu entsprechen. Ohne `timestamp` schlägt die Typprüfung
+  // fehl, da MessageList das Feld zur Sortierung und Anzeige nutzt.
+  const [messages, setMessages] = useState<ChatMessage[]>([
+    {
+      id: "hello",
+      role: "assistant",
+      text: "**Hi!** Ich bin bereit. Schick Text, Bilder oder Videos.",
+      timestamp: Date.now(),
+    },
   ]);
   const [busy,setBusy] = useState(false);
 
@@ -16,25 +24,34 @@ export default function ChatWindow() {
       id: crypto.randomUUID(),
       role: "user",
       text: payload.text || undefined,
-      media: (payload.files || []).map(f => {
+      // Füge einen Zeitstempel hinzu, damit der ChatMessage-Typ erfüllt ist
+      timestamp: Date.now(),
+      media: (payload.files || []).map((f) => {
         const url = URL.createObjectURL(f);
         const isVideo = f.type.startsWith("video/");
         const isImage = f.type.startsWith("image/");
-        return isVideo ? {type:"video", url} :
-               isImage ? {type:"image", url} :
-               {type:"file", url, name:f.name};
-      })
+        return isVideo
+          ? { type: "video", url }
+          : isImage
+          ? { type: "image", url }
+          : { type: "file", url, name: f.name };
+      }),
     };
     setMessages(prev => [...prev, newMsg]);
 
     setBusy(true);
     // fake response
     await new Promise(r=>setTimeout(r, 600));
-    setMessages(prev => [...prev, {
-      id: crypto.randomUUID(),
-      role: "assistant",
-      text: "✅ Empfangen. Ich analysiere das Material gleich…"
-    }]);
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: crypto.randomUUID(),
+        role: "assistant",
+        text: "✅ Empfangen. Ich analysiere das Material gleich…",
+        // Zeitstempel für Fake-Antwort hinzufügen
+        timestamp: Date.now(),
+      },
+    ]);
     setBusy(false);
   };
 

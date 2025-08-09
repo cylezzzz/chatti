@@ -10,7 +10,14 @@ export function MarkdownMessage({text}:{text:string}) {
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         components={{
-          code({inline, className, children, ...props}) {
+          // Der Typ des Arguments für das <code>-Element wird hier als `any`
+          // annotiert, um TypeScript zu erlauben, die Properties wie `inline`
+          // zu erkennen. Ohne diese Annotation tritt ein Fehler auf, weil
+          // `ClassAttributes<HTMLElement> & HTMLAttributes<HTMLElement>` kein
+          // `inline`-Feld definiert. Alternativ könnte ein spezifischeres
+          // Interface importiert werden, aber `any` ist für diese Helper
+          // ausreichend.
+          code({ inline, className, children, ...props }: any) {
             const match = /language-(\w+)/.exec(className || "");
             const code = String(children ?? "");
             if (inline) {
