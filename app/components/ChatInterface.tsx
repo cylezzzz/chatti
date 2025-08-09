@@ -309,13 +309,14 @@ export default function ChatInterface() {
 
       // Füge Standard-Antwort hinzu falls kein Stream
       if (!assistantText) {
-        const defaultResponses = {
+        const defaultResponses: Record<string, string> = {
           image: '🎨 **Bild generiert!** Das Bild wurde basierend auf deiner Beschreibung erstellt. Du kannst es anklicken um es zu markieren und weitere Änderungen vornehmen.',
           video: '🎬 **Video erstellt!** Dein animiertes Video ist fertig. Du kannst es herunterladen oder weitere Bearbeitungen vornehmen.',
+          mixed: '📎 **Content erstellt!** Deine Inhalte sind fertig. Du kannst sie anklicken um weitere Bearbeitungen vorzunehmen.',
           text: '✨ **Verstanden!** Lass mich dir dabei helfen. Was genau möchtest du erstellen oder bearbeiten?'
         };
         
-        const responseText = defaultResponses[assistantMsg.contentType || 'text'];
+        const responseText = defaultResponses[assistantMsg.contentType || 'text'] || defaultResponses.text;
         setMessages((prev) => 
           prev.map((msg) => 
             msg.id === assistantMsg.id 

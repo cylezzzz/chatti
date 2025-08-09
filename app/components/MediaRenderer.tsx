@@ -91,10 +91,11 @@ export default function MediaRenderer({
     }
   };
 
-  const handlePhotoEditComplete = (originalUrl: string, editedUrl: string, description: string) => {
+  const handlePhotoEditComplete = (editedImageUrl: string, editDescription: string) => {
     setShowPhotoEditor(null);
     if (onMediaEdit) {
-      onMediaEdit(originalUrl, editedUrl, description);
+      // Verwende die ursprüngliche URL aus showPhotoEditor als originalUrl
+      onMediaEdit(showPhotoEditor!, editedImageUrl, editDescription);
     }
   };
 
