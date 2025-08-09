@@ -344,7 +344,7 @@ export default function MediaViewer({ file, className, onSketchComplete }: Media
 
   if (isVideo) {
     return (
-      <div 
+      </div> 
         ref={containerRef}
         className={cn(
           "relative bg-black rounded-lg overflow-hidden group",
