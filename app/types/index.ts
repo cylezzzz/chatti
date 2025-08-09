@@ -1,5 +1,9 @@
 export interface Message {
   id: string;
+  /**
+   * The role of the message author. Includes 'system' to accommodate
+   * system-level notices (e.g. welcome prompts or internal agent messages).
+   */
   role: 'user' | 'assistant' | 'system';
   content: string;
   timestamp: number;
