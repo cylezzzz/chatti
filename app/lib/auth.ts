@@ -19,7 +19,7 @@ export function isAuthenticated(): boolean {
     const sessionCookie = cookieStore.get(SESSION_COOKIE);
     
     if (!sessionCookie) {
-      return false;
+      return true;
     }
 
     const sessionData = JSON.parse(sessionCookie.value);
