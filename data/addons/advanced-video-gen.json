@@ -1,0 +1,10 @@
+{
+  "id": "advanced-video-gen",
+  "name": "Text zu Video generieren (In Arbeit)",
+  "pipeline": "comfyui",
+  "workflow": "/workflows/text2video.json",
+  "realtime": true,
+  "gpuRequired": true,
+  "estimatedTime": "30-120s",
+  "status": "in-progress"
+}

@@ -2,9 +2,8 @@
 import React from "react";
 import { ChatBubble } from "./ChatBubble";
 import { MarkdownMessage } from "./MarkdownMessage";
-import MediaRenderer from "./MediaRenderer";
 import { Badge } from "@/components/ui/badge";
-import { Sparkles, User, Bot, CheckCircle } from "lucide-react"; // ✅ BEHOBEN: CheckCircle import hinzugefügt
+import { Sparkles, User, Bot, CheckCircle } from "lucide-react";
 
 export type ChatMessage = {
   id: string;
@@ -24,6 +23,78 @@ interface SelectableMediaMessageProps {
   m: ChatMessage;
   selectedMedia: string[];
   onMediaSelect: (mediaUrl: string, isSelected: boolean) => void;
+}
+
+// Temporäre einfache Media-Komponente (ersetzt MediaRenderer)
+function SimpleMediaRenderer({ items, selectedMedia, onMediaSelect }: {
+  items: ChatMessage['media'];
+  selectedMedia: string[];
+  onMediaSelect: (mediaUrl: string, isSelected: boolean) => void;
+}) {
+  if (!items?.length) return null;
+
+  return (
+    <div className="mt-4 space-y-4">
+      {items.map((item, index) => {
+        const isSelected = selectedMedia.includes(item.url);
+        
+        return (
+          <div key={index} className="relative group">
+            {/* Selection Button */}
+            <button
+              onClick={() => onMediaSelect(item.url, !isSelected)}
+              className={`absolute top-2 right-2 z-10 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
+                isSelected 
+                  ? 'bg-cyan-500 border-cyan-500' 
+                  : 'bg-black/50 border-white/60 hover:bg-white/20'
+              }`}
+            >
+              {isSelected && <CheckCircle className="w-4 h-4 text-white" />}
+            </button>
+
+            {/* Media Content */}
+            {item.type === 'image' && (
+              <img
+                src={item.url}
+                alt={item.alt || 'Generated image'}
+                className={`w-full h-auto max-h-96 object-contain rounded-lg cursor-pointer transition-all ${
+                  isSelected ? 'ring-2 ring-cyan-500' : ''
+                }`}
+                onClick={() => onMediaSelect(item.url, !isSelected)}
+              />
+            )}
+            
+            {item.type === 'video' && (
+              <video
+                src={item.url}
+                poster={item.poster}
+                controls
+                className={`w-full h-auto max-h-96 rounded-lg ${
+                  isSelected ? 'ring-2 ring-cyan-500' : ''
+                }`}
+              />
+            )}
+            
+            {item.type === 'file' && (
+              <div className={`flex items-center gap-3 p-4 rounded-lg border bg-card ${
+                isSelected ? 'ring-2 ring-cyan-500' : ''
+              }`}>
+                <span className="text-2xl">📄</span>
+                <div>
+                  <p className="font-medium">{item.name || 'File'}</p>
+                  {item.size && (
+                    <p className="text-sm text-muted-foreground">
+                      {(item.size / 1024 / 1024).toFixed(1)} MB
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
 }
 
 export function SelectableMediaMessage({ m, selectedMedia, onMediaSelect }: SelectableMediaMessageProps) {
@@ -102,11 +173,10 @@ export function SelectableMediaMessage({ m, selectedMedia, onMediaSelect }: Sele
             {/* Media Content */}
             {m.media && m.media.length > 0 && (
               <div className="-mx-1">
-                <MediaRenderer 
+                <SimpleMediaRenderer 
                   items={m.media}
-                  onMediaSelect={isAssistant ? onMediaSelect : undefined}
                   selectedMedia={selectedMedia}
-                  showSelectionUI={isAssistant}
+                  onMediaSelect={onMediaSelect}
                 />
               </div>
             )}

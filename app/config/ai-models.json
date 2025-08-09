@@ -1,0 +1,21 @@
+{
+  "models": {
+    "text2image": {
+      "primary": "stable-diffusion-xl",
+      "fallback": "stable-diffusion-2.1",
+      "nsfw": "stable-diffusion-xl-nsfw"
+    },
+    "text2video": {
+      "primary": "stable-video-diffusion",
+      "fallback": "animate-diff"
+    },
+    "face_detection": {
+      "primary": "mediapipe-face",
+      "fallback": "opencv-face"
+    }
+  },
+  "endpoints": {
+    "local": "http://localhost:7860",
+    "cloud": "https://api.runpod.io"
+  }
+}

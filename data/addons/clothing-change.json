@@ -1,0 +1,44 @@
+{
+  "id": "clothing-change",
+  "name": "Outfit ändern",
+  "description": "Ändert die Kleidung in einem Bild, ohne die Person zu verändern",
+  "category": "Image Editing",
+  "version": "1.0.0",
+  "enabled": true,
+  "nsfw": false,
+  "prompt": "Change the outfit in the uploaded image to: {{outfit}}. Keep the person's face and body intact and natural. Style: {{style}}.",
+  "icon": "👕",
+  "color": "#e879f9",
+  "fields": [
+    {
+      "name": "image",
+      "type": "file",
+      "label": "Source Image",
+      "required": true,
+      "accept": "image/*",
+      "description": "Upload the photo where you want to change the outfit"
+    },
+    {
+      "name": "outfit",
+      "type": "textarea",
+      "label": "Desired Outfit",
+      "placeholder": "Describe the new clothing the person should wear…",
+      "required": true,
+      "description": "Be as detailed as you like: e.g., a red dress, a navy business suit, a casual t-shirt and jeans"
+    },
+    {
+      "name": "style",
+      "type": "select",
+      "label": "Style",
+      "required": false,
+      "defaultValue": "photorealistic",
+      "options": [
+        "photorealistic",
+        "artistic",
+        "cartoon",
+        "sketch"
+      ],
+      "description": "Choose the style for the generated outfit"
+    }
+  ]
+}

@@ -19,7 +19,7 @@ export type ChatMessage = {
 interface MessageListProps {
   messages: ChatMessage[];
   selectedMedia?: string[];
-  onMediaSelect?: (mediaUrl: string, isSelected: boolean) => void; // ✅ BEHOBEN: Prop hinzugefügt
+  onMediaSelect?: (mediaUrl: string, isSelected: boolean) => void;
 }
 
 export function MessageList({ messages, selectedMedia = [], onMediaSelect }: MessageListProps) {
@@ -76,7 +76,7 @@ export function MessageList({ messages, selectedMedia = [], onMediaSelect }: Mes
             <SelectableMediaMessage 
               m={message}
               selectedMedia={selectedMedia}
-              onMediaSelect={onMediaSelect || (() => {})} // ✅ BEHOBEN: Fallback hinzugefügt
+              onMediaSelect={onMediaSelect || (() => {})}
             />
           </div>
         );

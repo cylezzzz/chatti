@@ -1,0 +1,104 @@
+# docker-compose.yml
+version: "3.8"
+
+# Tipp: Leg eine .env neben diese Datei:
+# COMFYUI_PORT=8188
+# SD_MODELS_HOST=./models
+# SD_CACHE_HOST=./cache
+# VIDEO_WORKDIR=./video-work
+# DOCKER_REGISTRY_MIRROR=
+# (unter Windows: Pfade wie C:\data\writeora\models funktionieren auch, besser WSL-Pfade nutzen)
+
+services:
+  # --- Stable Diffusion / ComfyUI API ---
+  sd-api:
+    image: "comfyanonymous/comfyui:latest"
+    container_name: sd-api
+    restart: unless-stopped
+    ports:
+      - "${COMFYUI_PORT:-8188}:8188"
+    # NVIDIA GPU für PyTorch
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: ["gpu"]
+    # Alternativ (Docker Compose v2): gpus: all
+    # gpus: all
+    environment:
+      # Optional – je nach Host-Setup:
+      - HF_HOME=/root/.cache/huggingface
+      - TORCH_CUDA_ARCH_LIST=All
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+    volumes:
+      # Modelle & Checkpoints
+      - "${SD_MODELS_HOST:-./models}:/root/ComfyUI/models"
+      # Cache für Weights/Hub
+      - "${SD_CACHE_HOST:-./cache}:/root/.cache"
+      # Optional: eigene Workflows / Input/Output
+      - "./comfyui/custom_nodes:/root/ComfyUI/custom_nodes"
+      - "./comfyui/input:/root/ComfyUI/input"
+      - "./comfyui/output:/root/ComfyUI/output"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8188"]
+      interval: 20s
+      timeout: 5s
+      retries: 20
+
+  # --- Video Processing (FFmpeg mit NVENC) ---
+  video-processor:
+    image: "jrottenberg/ffmpeg:6.1-nvidia"
+    container_name: video-processor
+    restart: unless-stopped
+    depends_on:
+      sd-api:
+        condition: service_healthy
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: ["gpu"]
+    # gpus: all
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=video,compute,utility
+    volumes:
+      - "${VIDEO_WORKDIR:-./video-work}:/work"
+    # FFmpeg ist CLI; wir halten den Container laufend (du triggertst Jobs via `docker exec`)
+    command: ["tail", "-f", "/dev/null"]
+    healthcheck:
+      test: ["CMD-SHELL", "ffmpeg -version >/dev/null 2>&1 || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 10
+
+  # --- Sandbox Code Executor (Docker-in-Docker) ---
+  # WARNUNG: privileged=true ist NICHT für Multi-tenant/Prod geeignet.
+  # Für sichere Ausführung lieber Firecracker/Kata/NSJail/Podman+seccomp verwenden.
+  code-executor:
+    image: "docker:24.0-dind"
+    container_name: code-executor
+    restart: unless-stopped
+    privileged: true
+    environment:
+      - DOCKER_TLS_CERTDIR=/certs
+      - DOCKER_REGISTRY_MIRROR=${DOCKER_REGISTRY_MIRROR:-}
+    ports:
+      - "2375:2375"  # falls dein Backend via TCP den Daemon ansprechen soll (nur intern/vertrauenswürdig!)
+    volumes:
+      - "dind-data:/var/lib/docker"
+      - "./executions:/executions"
+    command: ["--host=tcp://0.0.0.0:2375", "--host=unix:///var/run/docker.sock"]
+    healthcheck:
+      test: ["CMD-SHELL", "docker info >/dev/null 2>&1 || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 10
+
+networks:
+  default:
+    name: ai_net
+
+volumes:
+  dind-data:

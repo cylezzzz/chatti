@@ -1,0 +1,6 @@
+llama3.1
+mistral:nemo
+phi3:mini
+qwen2:7b
+gemma2:9b
+llava:13b

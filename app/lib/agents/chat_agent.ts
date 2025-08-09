@@ -1,33 +1,40 @@
-// app/lib/agents/chat_agent.ts
-import { getBehaviorConfig } from '@/app/settings/behavior_config';
-import sources from '@/app/settings/available_agents.json';
+/**
+ * Chat agent helper functions.
+ *
+ * This module encapsulates simple intent detection and suggestion
+ * generation for the chat application.  It is not a full agent
+ * implementation; instead it exports helpers that can be invoked from
+ * your UI when you wish to determine which add‑ons might be
+ * appropriate for a given user input.
+ */
 
-export async function handleUserInput(text: string) {
-  const cfg = await getBehaviorConfig();
+export interface Suggestion {
+  id: string;
+  label: string;
+  json: string;
+}
 
-  const system = [
-    'Du bist ein technischer Assistent für Content-Generierung.',
-    'Behandle alle Themen gleichwertig, einschließlich kreativer und künstlerischer Inhalte.',
-    'Antworte direkt und zweckmäßig.',
-    `Stil: ${cfg.style}. Tiefe: ${cfg.depth}. Stream: ${cfg.stream}.`
-  ].join('\n');
-
-  // Intent-Erkennung für verschiedene Content-Typen
-  const needsText2Image   = /\b(text zu bild|text2image|t2i|generiere bild|erstelle bild|zeichne|male)\b/i.test(text);
-  const needsImage2Image  = /\b(bild zu bild|image2image|i2i|verändere bild|bearbeite bild)\b/i.test(text);
-  const needsImage2Video  = /\b(bild zu video|image2video|i2v|animiere|bewege|video aus bild)\b/i.test(text);
-  const needsClothesRemover = /\b(kleidung entfernen|clothes remover|outfit ändern|anziehen|ausziehen)\b/i.test(text);
-  const needsCode         = /\b(code|programmieren|script|analyse|refactor|bug)\b/i.test(text);
-  const needsZip          = /\b(zip|entpacken|packen|archiv|unzip)\b/i.test(text);
-
-  const suggestions: Array<{ id: string; label: string; json?: string }> = [];
-
-  if (needsText2Image)     suggestions.push({ id: 'text2image', label: 'Text → Bild', json: '/data/addons/text2image.json' });
-  if (needsImage2Image)    suggestions.push({ id: 'image2image', label: 'Bild bearbeiten', json: '/data/addons/image2image.json' });
-  if (needsImage2Video)    suggestions.push({ id: 'image2video', label: 'Bild → Video', json: '/data/addons/image2video.json' });
-  if (needsClothesRemover) suggestions.push({ id: 'clothing-remover', label: 'Outfit ändern', json: '/data/addons/clothing-remover.json' });
-  if (needsCode)           suggestions.push({ id: 'code-analyzer', label: 'Code-Analyse', json: '/data/addons/code-analyzer.json' });
-  if (needsZip)            suggestions.push({ id: 'zip-handler', label: 'ZIP-Handling', json: '/data/addons/zip-handler.json' });
-
-  return { system, suggestions };
+/**
+ * getSuggestions
+ *
+ * Returns an array of add‑on suggestions based on the provided
+ * user input.  The algorithm is rudimentary and searches for
+ * keywords that map to specific add‑ons.  If no keywords match,
+ * the returned array will be empty.
+ *
+ * Currently recognised intents:
+ *  - clothing‑change: triggered by phrases like "Kleidung ändern", "Outfit ändern" or "neues Outfit".
+ */
+export function getSuggestions(text: string): Suggestion[] {
+  const suggestions: Suggestion[] = [];
+  const lower = text.toLowerCase();
+  // Recognise requests to change clothing/outfits
+  if (/\b(kleidung ändern|outfit ändern|neues outfit)\b/.test(lower)) {
+    suggestions.push({
+      id: "clothing-change",
+      label: "Outfit ändern",
+      json: "/data/addons/clothing-change.json",
+    });
+  }
+  return suggestions;
 }

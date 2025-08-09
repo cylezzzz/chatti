@@ -1,0 +1,63 @@
+ULTRAREAL LOKALE VIDEO-AGENTEN (MIT TON) — EMPFEHLUNGSLISTE
+===========================================================
+Legende: [V+T]=Video+Ton, [SFW]=Nicht-NSFW, [NSFW]=NSFW-tauglich, [Lokal]=ohne Cloud, [Einfach]=schneller Start
+
+— ALL-IN-ONE (ein Agent für SFW & NSFW) —
+1) Comfy-Orchestrator  [V+T][SFW][NSFW][Lokal]
+   Stack: Open WebUI (Ollama) -> Action triggert ComfyUI (AnimateDiff + ControlNet + IP-Adapter) -> Piper TTS -> FFmpeg
+   Warum: Höchste Flex, realistische Gesichter (IP-Adapter), präzise Pose (ControlNet), Chat-gesteuert.
+   Status: VOLLFUNKTIONAL. Ein Prompt -> Clip + Voiceover.
+
+2) Invoke-Director     [V+T][SFW][NSFW][Lokal]
+   Stack: Open WebUI (Ollama) -> InvokeAI 3 Workflow (SDXL/Flux, Keyframes/Animate) -> Piper TTS -> FFmpeg
+   Warum: Sehr zugängliche UI, gute Workflows, schnelle Einrichtung.
+   Status: STABIL. Einfache Bedienung, gute Qualität.
+
+3) Deforum-Hub         [V+T][SFW][NSFW][Lokal]
+   Stack: Open WebUI (optional) -> AUTOMATIC1111 + Deforum (Keyframe-Prompts) -> Piper TTS -> FFmpeg
+   Warum: Klassiker für Animation/Keyframes, große Community.
+   Status: REIF. Etwas mehr Tuning nötig für „Ultra-Realismus“.
+
+
+— SFW (Nicht-NSFW) – Top 3 Agenten —
+1) SVD-Local           [V+T][SFW][Lokal][Einfach]
+   Stack: Stable Video Diffusion (diffusers/ComfyUI-Node) für Img→Vid -> Piper -> FFmpeg
+   Stärken: Schneller Setup, saubere Bewegungen aus einem Foto, gut für Produkt/Scenery.
+
+2) Comfy-Template SFW  [V+T][SFW][Lokal]
+   Stack: ComfyUI (SDXL/Flux) + Hires-Fix + ControlNet (Pose/Depth) -> Piper -> FFmpeg
+   Stärken: Ultra-realistische Einzelbilder + sanfte Motion (AnimateDiff leichtgewichtig).
+
+3) Keyframe-Animator   [V+T][SFW][Lokal]
+   Stack: AUTOMATIC1111 + Deforum (Prompt-Keyframes) -> Piper -> FFmpeg
+   Stärken: Vollständig per Keyframes steuerbar; robust und dokumentiert.
+
+
+— NSFW – Top 3 Agenten —
+1) Comfy-NSFW-Pro      [V+T][NSFW][Lokal]  ***EMPFEHLUNG***
+   Stack: ComfyUI + (Flux/RealisticVision) + AnimateDiff + IP-Adapter (Gesicht) + ControlNet (Pose) -> Piper -> FFmpeg
+   Stärken: Maximale Kontrolle (Gesichtstreue, Pose, Kleidung), höchste Realistik mit passenden Checkpoints.
+   Hinweis: Nur lokal und im legalen Rahmen verwenden.
+
+2) A1111-NSFW-Deforum  [V+T][NSFW][Lokal]
+   Stack: AUTOMATIC1111 + Deforum + IP-Adapter + ControlNet -> Piper -> FFmpeg
+   Stärken: Einfach zu skripten, Keyframes für präzise Szenen/Bewegungen.
+
+3) Direct Img2Vid NSFW [V+T][NSFW][Lokal]
+   Stack: Stable Video Diffusion (mit geeignetem lokalen Model) -> Piper -> FFmpeg
+   Stärken: Schnell von Referenzbild zu Clip; gut für kurze, konsistente Sequenzen.
+
+
+— Hinweise zur Audio-/Ton-Integration —
+- TTS: Piper (lokal), Stimme (.onnx + .json) in data/voices/; 22.05 kHz reicht oft.
+- Muxing: FFmpeg (AAC 192 kbps), Interpolation optional via RIFE für 24–30 FPS.
+
+— Wann welchen Agenten? —
+- „Ein Prompt, maximale Kontrolle, SFW & NSFW“  ->  Comfy-Orchestrator
+- „Einfacher Einstieg, SFW-first“                ->  SVD-Local / Comfy-Template SFW
+- „Keyframe-Feinsteuerung/Tradition“             ->  Deforum-Hub / Keyframe-Animator
+- „NSFW High-End (Gesicht+Pose+Style)“           ->  Comfy-NSFW-Pro
+
+— Kurzfazit —
+Wenn du NUR EINEN Agenten willst, der beide Welten zuverlässig abdeckt und alle anderen praktisch ersetzt:
+-> **Comfy-Orchestrator** (Open WebUI + ComfyUI + Piper + FFmpeg). Einmal Actions anlegen, danach prompten & los.

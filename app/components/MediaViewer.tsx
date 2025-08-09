@@ -209,6 +209,7 @@ export default function MediaViewer({ file, className, onSketchComplete }: Media
                 variant="secondary"
                 size="sm"
                 className="bg-black/50 text-white hover:bg-black/70"
+                onClick={() => setIsImageFullscreen(true)}
               >
                 <Maximize className="h-4 w-4 mr-2" />
                 Vollbild
@@ -344,7 +345,7 @@ export default function MediaViewer({ file, className, onSketchComplete }: Media
 
   if (isVideo) {
     return (
-      </div> 
+      <div
         ref={containerRef}
         className={cn(
           "relative bg-black rounded-lg overflow-hidden group",
@@ -449,3 +450,51 @@ export default function MediaViewer({ file, className, onSketchComplete }: Media
                 >
                   <SkipForward className="h-4 w-4" />
                 </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={toggleMute}
+                  className="text-white hover:bg-white/20"
+                >
+                  {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+                </Button>
+              </div>
+
+              <div className="flex items-center gap-2 text-white text-sm">
+                <span>{formatTime(currentTime)}</span>
+                <span>/</span>
+                <span>{formatTime(duration)}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Fallback für unbekannte Dateitypen
+  return (
+    <Card className={cn("p-4", className)}>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-muted rounded">
+            <Edit className="h-6 w-6" />
+          </div>
+          <div>
+            <p className="font-medium">{file.name}</p>
+            <p className="text-sm text-muted-foreground">
+              {(file.size / 1024 / 1024).toFixed(1)} MB
+            </p>
+          </div>
+        </div>
+        <Button
+          variant="outline"
+          onClick={downloadFile}
+        >
+          <Download className="h-4 w-4 mr-2" />
+          Download
+        </Button>
+      </div>
+    </Card>
+  );
+}
