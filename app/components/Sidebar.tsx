@@ -13,11 +13,14 @@ import {
   Trash2,
   Package,
   Menu,
+  History,
 } from 'lucide-react';
 import { useApp } from '@/app/contexts/AppContext';
 import { ChatSession, Addon } from '@/app/types';
 import { cn } from '@/lib/utils';
 import PlaceholderModal from './PlaceholderModal';
+import ResizableAddonManager from './ResizableAddonManager';
+import SettingsModal from './SettingsModal';
 
 export default function Sidebar() {
   const { state, dispatch } = useApp();
@@ -25,6 +28,7 @@ export default function Sidebar() {
 
   const [showManage, setShowManage] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showAddonManager, setShowAddonManager] = useState(false);
 
   useEffect(() => {
     loadSessions();
@@ -91,7 +95,6 @@ export default function Sidebar() {
   };
 
   const selectAddon = (addon: Addon) => {
-    // Gleichbehandlung: Auswahl erlaubt, NSFW nur Info – Logik folgt
     dispatch({ type: 'SET_ACTIVE_ADDON', payload: addon });
   };
 
@@ -179,7 +182,7 @@ export default function Sidebar() {
                 ))}
                 {sessions.length === 0 && (
                   <p className="text-sm text-muted-foreground">
-                    No chat history – Platzhalter aktiv.
+                    Noch keine Chat-Historie vorhanden.
                   </p>
                 )}
               </div>
@@ -200,7 +203,7 @@ export default function Sidebar() {
                       activeAddon?.id === addon.id && 'border-primary bg-accent'
                     )}
                     onClick={() => selectAddon(addon)}
-                    title="Addon auswählen (Logik folgt)"
+                    title="Addon auswählen"
                   >
                     <div className="flex items-center justify-between mb-2">
                       <h4 className="font-medium text-sm">{addon.name}</h4>
@@ -213,7 +216,7 @@ export default function Sidebar() {
                 ))}
                 {enabledAddons.length === 0 && (
                   <p className="text-sm text-muted-foreground">
-                    No addons available – du kannst später welche hinzufügen.
+                    Keine Addons verfügbar.
                   </p>
                 )}
               </div>
@@ -228,18 +231,33 @@ export default function Sidebar() {
             variant="ghost"
             className="w-full justify-start"
             size="sm"
+            onClick={() => setShowAddonManager(true)}
+            title="Addons und Agenten verwalten"
+          >
+            <History className="mr-2 h-4 w-4" />
+            Addon & Agent Manager
+            <Badge variant="secondary" className="ml-auto text-xs">
+              6
+            </Badge>
+          </Button>
+          
+          <Button
+            variant="ghost"
+            className="w-full justify-start"
+            size="sm"
             onClick={() => setShowManage(true)}
-            title="Addons verwalten (Platzhalter)"
+            title="Addons verwalten"
           >
             <Package className="mr-2 h-4 w-4" />
-            Manage Addons
+            Addon Library
           </Button>
+          
           <Button
             variant="ghost"
             className="w-full justify-start"
             size="sm"
             onClick={() => setShowSettings(true)}
-            title="Einstellungen (Platzhalter)"
+            title="Einstellungen"
           >
             <Settings className="mr-2 h-4 w-4" />
             Settings
@@ -247,18 +265,25 @@ export default function Sidebar() {
         </div>
       </aside>
 
-      {/* Platzhalter-Modals */}
+      {/* Resizable Addon & Agent Manager */}
+      <ResizableAddonManager
+        open={showAddonManager}
+        onClose={() => setShowAddonManager(false)}
+        initialTab="addons"
+      />
+
+      {/* Settings Modal */}
+      <SettingsModal
+        open={showSettings}
+        onClose={() => setShowSettings(false)}
+      />
+
+      {/* Platzhalter-Modal für Addon Library */}
       <PlaceholderModal
         open={showManage}
         onClose={() => setShowManage(false)}
-        title="Addons verwalten"
-        message="UI ist verdrahtet. Installieren/Aktivieren folgt im nächsten Schritt."
-      />
-      <PlaceholderModal
-        open={showSettings}
-        onClose={() => setShowSettings(false)}
-        title="Einstellungen"
-        message="Modell-Pfade & Agenten-Auswahl werden hier editierbar – Platzhalter aktiv."
+        title="Addon Library"
+        message="Hier können später Addons aus der Community installiert und verwaltet werden."
       />
     </>
   );
