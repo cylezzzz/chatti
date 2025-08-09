@@ -60,101 +60,11 @@ interface ResizableAddonManagerProps {
   initialTab?: 'addons' | 'agents';
 }
 
-// Demo-Daten
-const mockAddons: GeneratedAddon[] = [
-  {
-    id: '1',
-    name: 'PDF-Analyzer',
-    description: 'Analysiert PDF-Dokumente und extrahiert Schlüsselinformationen',
-    prompt: 'Analysiere die hochgeladene PDF-Datei und extrahiere die wichtigsten Informationen, Zusammenfassungen und Schlüsselwörter.',
-    fileTypes: ['PDF', 'DOC', 'DOCX'],
-    generatedBy: 'analysis',
-    createdAt: Date.now() - 3600000,
-    wasOptimal: true,
-    downloadable: true,
-  },
-  {
-    id: '2',
-    name: 'Image-Enhancer',
-    description: 'Verbessert Bildqualität mit KI-basierten Filtern',
-    prompt: 'Verbessere die Bildqualität durch Schärfung, Rauschreduktion und Farboptimierung.',
-    fileTypes: ['JPG', 'PNG', 'WEBP'],
-    generatedBy: 'chat',
-    createdAt: Date.now() - 7200000,
-    wasOptimal: false,
-    betterAlternative: 'Für Bildbearbeitung wäre ein spezialisierter Vision-Agent besser geeignet.',
-    downloadable: true,
-  },
-  {
-    id: '3',
-    name: 'Code-Reviewer',
-    description: 'Überprüft Code auf Bugs und Verbesserungsmöglichkeiten',
-    prompt: 'Analysiere den Code auf mögliche Bugs, Sicherheitslücken und Verbesserungen.',
-    fileTypes: ['JS', 'TS', 'PY', 'CPP'],
-    generatedBy: 'analysis',
-    createdAt: Date.now() - 86400000,
-    wasOptimal: true,
-    downloadable: true,
-  },
-];
-
-const mockAgents: LocalAgent[] = [
-  {
-    id: '1',
-    name: 'LLaMA-3.1-70B',
-    type: 'chat',
-    modelFile: 'llama-3.1-70b-instruct-q4.gguf',
-    size: '42.3 GB',
-    path: '/models/llama-3.1-70b-instruct-q4.gguf',
-    description: 'Großes Sprachmodell für allgemeine Konversationen und komplexe Aufgaben',
-    capabilities: ['Textgenerierung', 'Übersetzung', 'Zusammenfassung', 'Kreatives Schreiben'],
-    lastUsed: Date.now() - 1800000,
-    isActive: true,
-    performance: 'excellent',
-    specialized: ['Allgemeine Konversation', 'Problemlösung', 'Kreativität'],
-  },
-  {
-    id: '2',
-    name: 'DeepSeek-Coder-V2',
-    type: 'code',
-    modelFile: 'deepseek-coder-v2-16b.gguf',
-    size: '8.7 GB',
-    path: '/models/deepseek-coder-v2-16b.gguf',
-    description: 'Spezialisiert auf Code-Analyse, -Generierung und -Debugging',
-    capabilities: ['Code-Analyse', 'Bug-Fixing', 'Refactoring', 'Code-Erklärung'],
-    lastUsed: Date.now() - 3600000,
-    isActive: true,
-    performance: 'excellent',
-    specialized: ['Python', 'JavaScript', 'TypeScript', 'C++'],
-  },
-  {
-    id: '3',
-    name: 'Stable-Diffusion-XL',
-    type: 'image',
-    modelFile: 'stable-diffusion-xl-base.safetensors',
-    size: '6.9 GB',
-    path: '/models/stable-diffusion-xl-base.safetensors',
-    description: 'Hochwertige Bildgenerierung und -bearbeitung',
-    capabilities: ['Bildgenerierung', 'Bildbearbeitung', 'Style Transfer', 'Inpainting'],
-    isActive: false,
-    performance: 'good',
-    specialized: ['Fotorealismus', 'Kunstwerke', 'Konzeptkunst'],
-  },
-  {
-    id: '4',
-    name: 'Mistral-7B',
-    type: 'chat',
-    modelFile: 'mistral-7b-instruct-v0.2.gguf',
-    size: '4.1 GB',
-    path: '/models/mistral-7b-instruct-v0.2.gguf',
-    description: 'Effizienter kleinerer Agent für schnelle Aufgaben',
-    capabilities: ['Schnelle Antworten', 'Einfache Aufgaben', 'Zusammenfassungen'],
-    lastUsed: Date.now() - 86400000,
-    isActive: false,
-    performance: 'good',
-    specialized: ['Schnelle Hilfe', 'Einfache Fragen'],
-  },
-];
+// Leere Arrays für reale Nutzung: Die Demo-Daten wurden entfernt, sodass im
+// Addon & Agent Manager nur echte Addons/Agenten angezeigt werden können.
+// Falls keine echten Daten vorhanden sind, bleiben die Listen leer.
+const mockAddons: GeneratedAddon[] = [];
+const mockAgents: LocalAgent[] = [];
 
 export default function ResizableAddonManager({ 
   open, 

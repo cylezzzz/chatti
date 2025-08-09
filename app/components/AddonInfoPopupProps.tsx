@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
@@ -6,6 +6,9 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { X, Download, FileText, Bot, Zap, AlertTriangle } from 'lucide-react';
 
+// Type definition for a generated addon. These mirror the mock/demo structure
+// used throughout the application and can be replaced by real data when
+// integrating with a backend.
 type GeneratedAddon = {
   id: string;
   name: string;
@@ -19,32 +22,40 @@ type GeneratedAddon = {
   downloadable: boolean;
 };
 
+// Props for the AddonInfoPopup component. It requires an addon to display,
+// a boolean flag to control visibility, and a callback to close the popup.
 interface AddonInfoPopupProps {
   addon: GeneratedAddon | null;
   open: boolean;
   onClose: () => void;
 }
 
+/**
+ * A modal popup that shows detailed information about a generated addon. It
+ * displays the addon's name, description, generation method, prompt, file
+ * types, and download options. The popup is rendered only when both
+ * `open` is true and an `addon` is provided.
+ */
 export default function AddonInfoPopup({ addon, open, onClose }: AddonInfoPopupProps) {
   const [downloading, setDownloading] = useState(false);
 
   if (!open || !addon) return null;
 
+  // Simulates the download of an addon. Replace with actual API call
+  // to generate and fetch the addon's JSON when backend is implemented.
   const handleDownload = async () => {
     if (!addon.downloadable) return;
-    
+
     setDownloading(true);
     try {
-      // Simuliere Download - hier würde die echte Download-Logik stehen
       await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // In echter Implementierung: API-Call zum Erstellen und Download des Addons
       console.log(`Downloading addon: ${addon.name}`);
     } finally {
       setDownloading(false);
     }
   };
 
+  // Format timestamp into a localized German date-time string
   const formatTime = (timestamp: number) => {
     return new Date(timestamp).toLocaleString('de-DE', {
       day: '2-digit',
@@ -62,8 +73,8 @@ export default function AddonInfoPopup({ addon, open, onClose }: AddonInfoPopupP
           <div className="flex items-start justify-between">
             <div className="flex-1">
               <CardTitle className="flex items-center gap-2 text-lg">
-                {addon.generatedBy === 'chat' ? 
-                  <Bot className="h-5 w-5 text-blue-500" /> : 
+                {addon.generatedBy === 'chat' ?
+                  <Bot className="h-5 w-5 text-blue-500" /> :
                   <Zap className="h-5 w-5 text-purple-500" />
                 }
                 {addon.name}
@@ -81,7 +92,7 @@ export default function AddonInfoPopup({ addon, open, onClose }: AddonInfoPopupP
               <X className="h-4 w-4" />
             </Button>
           </div>
-          
+
           <div className="flex items-center gap-2 pt-2">
             <Badge variant={addon.generatedBy === 'chat' ? 'default' : 'secondary'}>
               {addon.generatedBy === 'chat' ? 'Chat-KI' : 'Analyse-KI'}

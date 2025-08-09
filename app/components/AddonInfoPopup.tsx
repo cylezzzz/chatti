@@ -5,7 +5,10 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Bot, Zap, FileText, Clock, Download } from 'lucide-react';
-import AddonInfoPopup from './AddonInfoPopup';
+// Import the detailed popup component from its separate module rather than
+// referencing this file. Without this change, TypeScript incorrectly infers
+// the component props and compilation fails.
+import AddonInfoPopup from './AddonInfoPopupProps';
 
 type GeneratedAddon = {
   id: string;
