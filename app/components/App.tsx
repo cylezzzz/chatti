@@ -7,13 +7,12 @@ import ChatInterface from './ChatInterface';
 import { cn } from '@/lib/utils';
 import { Menu } from 'lucide-react';
 import AgentStartupPopup from './AgentStartupPopup';
-// import LoginForm from './LoginForm'; // bleibt auskommentiert
 
 const authDisabled = process.env.NEXT_PUBLIC_AUTH_DISABLED === 'true';
 
 export default function App() {
   const { state, dispatch } = useApp();
-  const [showStartup, setShowStartup] = useState(true);
+  const [showStartup, setShowStartup] = useState(false); // Startup deaktiviert für Demo
 
   useEffect(() => {
     if (authDisabled) {
@@ -26,38 +25,47 @@ export default function App() {
   }, [dispatch]);
 
   const toggleSidebar = () => {
-    // The TOGGLE_SIDEBAR action in the reducer does not accept a payload.
-    // It simply flips the sidebarOpen boolean itself.
     dispatch({ type: 'TOGGLE_SIDEBAR' });
   };
 
   return (
-    <div className="flex h-screen bg-background relative">
+    <div className="flex h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 relative overflow-hidden">
+      {/* Background Pattern */}
+      <div className="absolute inset-0 opacity-10">
+        <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 via-transparent to-cyan-500/20" />
+        <div className="absolute inset-0" style={{
+          backgroundImage: `radial-gradient(circle at 25% 25%, rgba(120, 119, 198, 0.1) 0%, transparent 50%), 
+                           radial-gradient(circle at 75% 75%, rgba(45, 212, 191, 0.1) 0%, transparent 50%)`
+        }} />
+      </div>
+
       {state.sidebarOpen && (
-        <div className="transition-all duration-300">
+        <div className="transition-all duration-300 relative z-10">
           <Sidebar />
         </div>
       )}
 
       {/* Toggle-Button – dezent oben links */}
-      <button
-        onClick={toggleSidebar}
-        className="absolute top-3 left-3 z-50 p-2 bg-background/80 backdrop-blur-sm rounded-md shadow hover:bg-background/60"
-        title={state.sidebarOpen ? 'Sidebar ausblenden' : 'Sidebar einblenden'}
-      >
-        <Menu size={20} />
-      </button>
+      {!state.sidebarOpen && (
+        <button
+          onClick={toggleSidebar}
+          className="absolute top-3 left-3 z-50 p-2 bg-slate-800/80 backdrop-blur-sm rounded-md shadow-lg hover:bg-slate-700/80 border border-slate-700/50 transition-all duration-200"
+          title="Sidebar einblenden"
+        >
+          <Menu size={20} className="text-white" />
+        </button>
+      )}
 
       <main
         className={cn(
-          'flex-1 flex flex-col min-w-0 transition-all duration-300',
+          'flex-1 flex flex-col min-w-0 transition-all duration-300 relative z-10',
           !state.sidebarOpen && 'ml-0'
         )}
       >
         <ChatInterface />
       </main>
 
-      {/* Startup model/agent check (after login) */}
+      {/* Startup modal (deaktiviert für Demo) */}
       <AgentStartupPopup open={showStartup} onClose={() => setShowStartup(false)} />
     </div>
   );

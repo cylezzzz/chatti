@@ -14,9 +14,13 @@ import {
   SkipForward,
   X,
   Download,
-  RotateCcw
+  RotateCcw,
+  Pencil,
+  Wand2,
+  Edit
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import SketchOverlay from './SketchOverlay';
 
 interface MediaViewerProps {
   file: {
@@ -27,9 +31,10 @@ interface MediaViewerProps {
     url: string;
   };
   className?: string;
+  onSketchComplete?: (sketchData: string, prompt: string) => void;
 }
 
-export default function MediaViewer({ file, className }: MediaViewerProps) {
+export default function MediaViewer({ file, className, onSketchComplete }: MediaViewerProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [volume, setVolume] = useState(1);
@@ -38,6 +43,7 @@ export default function MediaViewer({ file, className }: MediaViewerProps) {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showControls, setShowControls] = useState(true);
   const [isImageFullscreen, setIsImageFullscreen] = useState(false);
+  const [showSketchOverlay, setShowSketchOverlay] = useState(false);
   
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -168,6 +174,13 @@ export default function MediaViewer({ file, className }: MediaViewerProps) {
     document.body.removeChild(link);
   };
 
+  const handleSketchComplete = (sketchData: string, prompt: string) => {
+    setShowSketchOverlay(false);
+    if (onSketchComplete) {
+      onSketchComplete(sketchData, prompt);
+    }
+  };
+
   if (isImage) {
     return (
       <>
@@ -179,16 +192,39 @@ export default function MediaViewer({ file, className }: MediaViewerProps) {
             onClick={() => setIsImageFullscreen(true)}
           />
           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100">
-            <Button
-              variant="secondary"
-              size="sm"
-              className="bg-black/50 text-white hover:bg-black/70"
-            >
-              <Maximize className="h-4 w-4 mr-2" />
-              Vollbild
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="secondary"
+                size="sm"
+                className="bg-black/50 text-white hover:bg-black/70"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowSketchOverlay(true);
+                }}
+              >
+                <Pencil className="h-4 w-4 mr-2" />
+                Skizzieren
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                className="bg-black/50 text-white hover:bg-black/70"
+              >
+                <Maximize className="h-4 w-4 mr-2" />
+                Vollbild
+              </Button>
+            </div>
           </div>
         </div>
+
+        {/* Sketch Overlay */}
+        {showSketchOverlay && (
+          <SketchOverlay
+            imageUrl={file.url}
+            onSketchComplete={handleSketchComplete}
+            onClose={() => setShowSketchOverlay(false)}
+          />
+        )}
 
         {/* Image Fullscreen Modal */}
         {isImageFullscreen && (
@@ -200,6 +236,17 @@ export default function MediaViewer({ file, className }: MediaViewerProps) {
                 className="max-w-full max-h-full object-contain"
               />
               <div className="absolute top-4 right-4 flex gap-2">
+                <Button
+                  variant="secondary"
+                  size="icon"
+                  onClick={() => {
+                    setIsImageFullscreen(false);
+                    setShowSketchOverlay(true);
+                  }}
+                  className="bg-black/50 text-white hover:bg-black/70"
+                >
+                  <Pencil className="h-4 w-4" />
+                </Button>
                 <Button
                   variant="secondary"
                   size="icon"
@@ -219,6 +266,9 @@ export default function MediaViewer({ file, className }: MediaViewerProps) {
               </div>
               <div className="absolute bottom-4 left-4 bg-black/50 text-white px-3 py-1 rounded text-sm">
                 {file.name} • {(file.size / 1024 / 1024).toFixed(1)} MB
+                <div className="text-xs opacity-75 mt-1">
+                  Klicke auf das Stift-Icon zum Skizzieren
+                </div>
               </div>
             </div>
           </div>
@@ -399,64 +449,3 @@ export default function MediaViewer({ file, className }: MediaViewerProps) {
                 >
                   <SkipForward className="h-4 w-4" />
                 </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={toggleMute}
-                  className="text-white hover:bg-white/20"
-                >
-                  {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
-                </Button>
-                
-                {/* Volume Slider */}
-                <div className="w-20 h-1 bg-white/30 rounded-full cursor-pointer">
-                  <div 
-                    className="h-full bg-white rounded-full"
-                    style={{ width: `${volume * 100}%` }}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      const rect = e.currentTarget.getBoundingClientRect();
-                      const percent = (e.clientX - rect.left) / rect.width;
-                      handleVolumeChange(percent);
-                    }}
-                  />
-                </div>
-              </div>
-
-              <div className="flex items-center gap-4">
-                <span className="text-white text-sm">
-                  {formatTime(currentTime)} / {formatTime(duration)}
-                </span>
-                <div className="text-white text-sm">
-                  {file.name}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Fallback for other file types
-  return (
-    <Card className={cn("p-4", className)}>
-      <div className="flex items-center gap-3">
-        <div className="flex-1">
-          <div className="font-medium">{file.name}</div>
-          <div className="text-sm text-muted-foreground">
-            {(file.size / 1024).toFixed(1)} KB
-          </div>
-        </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={downloadFile}
-        >
-          <Download className="h-4 w-4 mr-2" />
-          Download
-        </Button>
-      </div>
-    </Card>
-  );
-}

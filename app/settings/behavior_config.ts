@@ -1,5 +1,14 @@
-import config from './default_config.json'
+// app/settings/behavior_config.ts
+export interface BehaviorConfig {
+  style: string;
+  depth: string;
+  stream: boolean;
+}
 
-export async function getBehaviorConfig() {
-  return config;
+export async function getBehaviorConfig(): Promise<BehaviorConfig> {
+  return {
+    style: "professional",
+    depth: "detailed",
+    stream: true
+  };
 }

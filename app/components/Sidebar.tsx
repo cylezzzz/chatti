@@ -14,6 +14,13 @@ import {
   Package,
   Menu,
   History,
+  Sparkles,
+  Image,
+  Video,
+  Palette,
+  Wand2,
+  Camera,
+  User
 } from 'lucide-react';
 import { useApp } from '@/app/contexts/AppContext';
 import { ChatSession, Addon } from '@/app/types';
@@ -21,6 +28,41 @@ import { cn } from '@/lib/utils';
 import PlaceholderModal from './PlaceholderModal';
 import ResizableAddonManager from './ResizableAddonManager';
 import SettingsModal from './SettingsModal';
+
+const CONTENT_TOOLS = [
+  {
+    id: 'text2image',
+    icon: Palette,
+    label: 'Text → Bild',
+    description: 'Erstelle Bilder aus Text',
+    gradient: 'from-purple-500 to-pink-600',
+    count: 12
+  },
+  {
+    id: 'image2image',
+    icon: Wand2,
+    label: 'Bild bearbeiten',
+    description: 'Verändere Bilder',
+    gradient: 'from-blue-500 to-cyan-600',
+    count: 8
+  },
+  {
+    id: 'image2video',
+    icon: Video,
+    label: 'Bild → Video',
+    description: 'Animiere Bilder',
+    gradient: 'from-orange-500 to-red-600',
+    count: 5
+  },
+  {
+    id: 'face_library',
+    icon: User,
+    label: 'Gesichter',
+    description: 'Gespeicherte Gesichter',
+    gradient: 'from-green-500 to-emerald-600',
+    count: 3
+  }
+];
 
 export default function Sidebar() {
   const { state, dispatch } = useApp();
@@ -62,7 +104,7 @@ export default function Sidebar() {
   const createNewChat = () => {
     const newSession: ChatSession = {
       id: Date.now().toString(),
-      title: 'New Chat',
+      title: 'Neuer Chat',
       messages: [],
       createdAt: Date.now(),
       updatedAt: Date.now(),
@@ -94,11 +136,15 @@ export default function Sidebar() {
     }
   };
 
-  const selectAddon = (addon: Addon) => {
-    dispatch({ type: 'SET_ACTIVE_ADDON', payload: addon });
+  const getSessionIcon = (session: ChatSession) => {
+    // Bestimme Icon basierend auf Session-Inhalt
+    const hasImages = session.messages.some(m => m.files?.some(f => f.type.startsWith('image/')));
+    const hasVideos = session.messages.some(m => m.files?.some(f => f.type.startsWith('video/')));
+    
+    if (hasVideos) return Video;
+    if (hasImages) return Image;
+    return MessageSquare;
   };
-
-  const enabledAddons = addons.filter((addon) => addon.enabled);
 
   if (!sidebarOpen) {
     return (
@@ -107,10 +153,10 @@ export default function Sidebar() {
           variant="outline"
           size="icon"
           onClick={() => dispatch({ type: 'TOGGLE_SIDEBAR' })}
-          className="bg-background/80 backdrop-blur-sm"
+          className="bg-slate-800/80 backdrop-blur-sm border-slate-700 hover:bg-slate-700"
           title="Sidebar öffnen"
         >
-          <Menu className="h-4 w-4" />
+          <Menu className="h-4 w-4 text-white" />
         </Button>
       </div>
     );
@@ -124,18 +170,27 @@ export default function Sidebar() {
       />
       <aside
         className={cn(
-          'fixed left-0 top-0 h-full w-80 bg-background border-r z-50 flex flex-col',
+          'fixed left-0 top-0 h-full w-80 bg-gradient-to-b from-slate-900 via-slate-900 to-slate-800 border-r border-slate-700 z-50 flex flex-col',
           'lg:relative lg:z-auto'
         )}
       >
-        <div className="p-4 border-b">
+        {/* Header */}
+        <div className="p-4 border-b border-slate-700/50 bg-gradient-to-r from-purple-600/20 to-cyan-600/20">
           <div className="flex items-center justify-between mb-4">
-            <h1 className="text-xl font-bold">AI Chat</h1>
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-gradient-to-br from-purple-500 to-cyan-500 rounded-lg">
+                <Sparkles className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <h1 className="text-lg font-bold text-white">Writeora</h1>
+                <p className="text-xs text-slate-400">Content Studio</p>
+              </div>
+            </div>
             <Button
               variant="ghost"
               size="icon"
               onClick={() => dispatch({ type: 'TOGGLE_SIDEBAR' })}
-              className="lg:hidden"
+              className="lg:hidden text-slate-400 hover:text-white hover:bg-slate-800"
               title="Sidebar schließen"
             >
               <X className="h-4 w-4" />
@@ -144,106 +199,130 @@ export default function Sidebar() {
 
           <Button
             onClick={createNewChat}
-            className="w-full justify-start"
+            className="w-full justify-start bg-gradient-to-r from-purple-600 to-cyan-600 hover:from-purple-500 hover:to-cyan-500 border-0 text-white font-medium"
             variant={currentSession ? 'outline' : 'default'}
           >
             <MessageSquarePlus className="mr-2 h-4 w-4" />
-            New Chat
+            Neuer Chat
           </Button>
         </div>
 
         <ScrollArea className="flex-1 px-4">
           <div className="space-y-6 py-4">
-            {/* Chat History */}
+            {/* Content Tools */}
             <div>
-              <h3 className="text-sm font-medium text-muted-foreground mb-3">Chat History</h3>
-              <div className="space-y-1">
-                {sessions.map((session) => (
+              <h3 className="text-sm font-medium text-slate-300 mb-3 flex items-center gap-2">
+                <Sparkles className="h-4 w-4" />
+                Content Tools
+              </h3>
+              <div className="space-y-2">
+                {CONTENT_TOOLS.map((tool) => (
                   <div
-                    key={session.id}
-                    className={cn(
-                      'group flex items-center gap-2 p-2 rounded-md cursor-pointer hover:bg-accent',
-                      currentSession?.id === session.id && 'bg-accent'
-                    )}
-                    onClick={() => selectSession(session)}
+                    key={tool.id}
+                    className="group p-3 rounded-lg bg-slate-800/50 hover:bg-slate-700/50 border border-slate-700/50 hover:border-slate-600/50 cursor-pointer transition-all duration-200"
+                    onClick={() => {/* Tool action */}}
                   >
-                    <MessageSquare className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                    <span className="flex-1 text-sm truncate">{session.title}</span>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-6 w-6 opacity-0 group-hover:opacity-100"
-                      onClick={(e) => deleteSession(session.id, e)}
-                      title="Chat löschen"
-                    >
-                      <Trash2 className="h-3 w-3" />
-                    </Button>
+                    <div className="flex items-center gap-3">
+                      <div className={`p-2 rounded-lg bg-gradient-to-br ${tool.gradient}`}>
+                        <tool.icon className="h-4 w-4 text-white" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium text-white">{tool.label}</span>
+                          <Badge variant="secondary" className="text-xs bg-slate-700 text-slate-300">
+                            {tool.count}
+                          </Badge>
+                        </div>
+                        <p className="text-xs text-slate-400 truncate">{tool.description}</p>
+                      </div>
+                    </div>
                   </div>
                 ))}
-                {sessions.length === 0 && (
-                  <p className="text-sm text-muted-foreground">
-                    Noch keine Chat-Historie vorhanden.
-                  </p>
-                )}
               </div>
             </div>
 
-            <Separator />
+            <Separator className="bg-slate-700/50" />
 
-            {/* Addon Library */}
+            {/* Chat History */}
             <div>
-              <h3 className="text-sm font-medium text-muted-foreground mb-3">Addon Library</h3>
-              <div className="space-y-2">
-                {enabledAddons.map((addon) => (
-                  <div
-                    key={addon.id}
-                    className={cn(
-                      'p-3 rounded-md border cursor-pointer transition-colors',
-                      'hover:border-primary/50 hover:bg-accent/50',
-                      activeAddon?.id === addon.id && 'border-primary bg-accent'
-                    )}
-                    onClick={() => selectAddon(addon)}
-                    title="Addon auswählen"
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <h4 className="font-medium text-sm">{addon.name}</h4>
-                      <Badge variant="secondary" className="text-xs">
-                        {addon.category}
-                      </Badge>
+              <h3 className="text-sm font-medium text-slate-300 mb-3 flex items-center gap-2">
+                <History className="h-4 w-4" />
+                Verlauf
+                <Badge variant="secondary" className="ml-auto text-xs bg-slate-700 text-slate-300">
+                  {sessions.length}
+                </Badge>
+              </h3>
+              <div className="space-y-1">
+                {sessions.map((session) => {
+                  const SessionIcon = getSessionIcon(session);
+                  return (
+                    <div
+                      key={session.id}
+                      className={cn(
+                        'group flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all duration-200',
+                        'hover:bg-slate-700/50 border border-transparent hover:border-slate-600/50',
+                        currentSession?.id === session.id && 'bg-slate-700/70 border-slate-600/70'
+                      )}
+                      onClick={() => selectSession(session)}
+                    >
+                      <div className="p-1.5 bg-slate-700 rounded-md">
+                        <SessionIcon className="h-3.5 w-3.5 text-slate-300" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <span className="text-sm text-white truncate block">{session.title}</span>
+                        <span className="text-xs text-slate-400">
+                          {new Date(session.updatedAt).toLocaleDateString('de-DE')}
+                        </span>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6 opacity-0 group-hover:opacity-100 text-slate-400 hover:text-red-400"
+                        onClick={(e) => deleteSession(session.id, e)}
+                        title="Chat löschen"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
                     </div>
-                    <p className="text-xs text-muted-foreground">{addon.description}</p>
+                  );
+                })}
+                {sessions.length === 0 && (
+                  <div className="p-4 text-center">
+                    <MessageSquare className="h-8 w-8 text-slate-600 mx-auto mb-2" />
+                    <p className="text-sm text-slate-400">
+                      Noch keine Chats vorhanden
+                    </p>
+                    <p className="text-xs text-slate-500 mt-1">
+                      Starte einen neuen Chat oben
+                    </p>
                   </div>
-                ))}
-                {enabledAddons.length === 0 && (
-                  <p className="text-sm text-muted-foreground">
-                    Keine Addons verfügbar.
-                  </p>
                 )}
               </div>
             </div>
           </div>
         </ScrollArea>
 
-        <Separator />
+        <Separator className="bg-slate-700/50" />
 
-        <div className="p-4 space-y-2">
+        {/* Footer Actions */}
+        <div className="p-4 space-y-2 bg-slate-900/50">
           <Button
             variant="ghost"
-            className="w-full justify-start"
+            className="w-full justify-start text-slate-300 hover:text-white hover:bg-slate-800"
             size="sm"
             onClick={() => setShowAddonManager(true)}
             title="Addons und Agenten verwalten"
           >
             <History className="mr-2 h-4 w-4" />
             Addon & Agent Manager
-            <Badge variant="secondary" className="ml-auto text-xs">
+            <Badge variant="secondary" className="ml-auto text-xs bg-slate-700 text-slate-300">
               6
             </Badge>
           </Button>
           
           <Button
             variant="ghost"
-            className="w-full justify-start"
+            className="w-full justify-start text-slate-300 hover:text-white hover:bg-slate-800"
             size="sm"
             onClick={() => setShowManage(true)}
             title="Addons verwalten"
@@ -254,31 +333,29 @@ export default function Sidebar() {
           
           <Button
             variant="ghost"
-            className="w-full justify-start"
+            className="w-full justify-start text-slate-300 hover:text-white hover:bg-slate-800"
             size="sm"
             onClick={() => setShowSettings(true)}
             title="Einstellungen"
           >
             <Settings className="mr-2 h-4 w-4" />
-            Settings
+            Einstellungen
           </Button>
         </div>
       </aside>
 
-      {/* Resizable Addon & Agent Manager */}
+      {/* Modals */}
       <ResizableAddonManager
         open={showAddonManager}
         onClose={() => setShowAddonManager(false)}
         initialTab="addons"
       />
 
-      {/* Settings Modal */}
       <SettingsModal
         open={showSettings}
         onClose={() => setShowSettings(false)}
       />
 
-      {/* Platzhalter-Modal für Addon Library */}
       <PlaceholderModal
         open={showManage}
         onClose={() => setShowManage(false)}

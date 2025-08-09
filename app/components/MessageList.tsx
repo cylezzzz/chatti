@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useRef } from "react";
-import { MessageItem } from "./MessageItem";
+import { SelectableMediaMessage } from "./SelectableMediaMessage";
 
 export type ChatMessage = {
   id: string;
@@ -12,9 +12,17 @@ export type ChatMessage = {
     | { type: "file"; url: string; name?: string; size?: number }
   >;
   timestamp: number;
+  contentType?: 'text' | 'image' | 'video' | 'mixed';
+  selectedMedia?: string[];
 };
 
-export function MessageList({ messages }: { messages: ChatMessage[] }) {
+interface MessageListProps {
+  messages: ChatMessage[];
+  selectedMedia?: string[];
+  onMediaSelect?: (mediaUrl: string, isSelected: boolean) => void;
+}
+
+export function MessageList({ messages, selectedMedia = [], onMediaSelect }: MessageListProps) {
   const endRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -48,22 +56,28 @@ export function MessageList({ messages }: { messages: ChatMessage[] }) {
   };
 
   return (
-    <div className="flex-1 overflow-y-auto p-4 space-y-4">
+    <div className="flex-1 overflow-y-auto p-6 space-y-6">
       {messages.map((message, index) => {
         const showTimestamp = index === 0 || 
           (messages[index - 1] && 
            message.timestamp - messages[index - 1].timestamp > 300000); // 5 Minuten
         
         return (
-          <div key={message.id}>
+          <div key={message.id} className="space-y-4">
             {showTimestamp && (
-              <div className="flex justify-center mb-4">
-                <span className="text-xs text-zinc-500 bg-zinc-800 px-3 py-1 rounded-full">
-                  {formatTime(message.timestamp)}
-                </span>
+              <div className="flex justify-center">
+                <div className="bg-slate-800/50 backdrop-blur-sm px-4 py-2 rounded-full border border-slate-700/50">
+                  <span className="text-xs text-slate-300">
+                    {formatTime(message.timestamp)}
+                  </span>
+                </div>
               </div>
             )}
-            <MessageItem m={message} />
+            <SelectableMediaMessage 
+              m={message}
+              selectedMedia={selectedMedia}
+              onMediaSelect={onMediaSelect || (() => {})}
+            />
           </div>
         );
       })}
