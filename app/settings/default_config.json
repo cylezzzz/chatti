@@ -1,6 +1,8 @@
 {
-  "style": "direkt",
-  "depth": "detailliert",
-  "stream": true,
-  "moral": false
+  "chat_ai": {
+    "model": "llama3.1-70b"
+  },
+  "analysis_ai": {
+    "model": "deepseek-coder-v2"
+  }
 }

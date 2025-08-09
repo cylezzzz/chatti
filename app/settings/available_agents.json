@@ -1,5 +1,60 @@
-
 [
-  { "name": "CodeLlama", "type": "local", "recommended": true },
-  { "name": "DeepCoder", "type": "remote", "recommended": false }
+  {
+    "name": "RealisticVisionV6",
+    "category": "image",
+    "input_types": [
+      "text",
+      "image",
+      "image+text"
+    ],
+    "strengths": [
+      "ultra realism",
+      "portrait",
+      "nsfw"
+    ],
+    "best_for": [
+      "realistic photos",
+      "portraits",
+      "nsfw realism"
+    ],
+    "score": 10,
+    "installed": true
+  },
+  {
+    "name": "AnimateDiff",
+    "category": "video",
+    "input_types": [
+      "image",
+      "image+text"
+    ],
+    "strengths": [
+      "realistic animation",
+      "smooth motion"
+    ],
+    "best_for": [
+      "short realistic videos",
+      "pose animations"
+    ],
+    "score": 9,
+    "installed": true
+  },
+  {
+    "name": "CodeLlama70B",
+    "category": "code",
+    "input_types": [
+      "text"
+    ],
+    "strengths": [
+      "python",
+      "typescript",
+      "debugging"
+    ],
+    "best_for": [
+      "code generation",
+      "refactors",
+      "analysis"
+    ],
+    "score": 8,
+    "installed": true
+  }
 ]

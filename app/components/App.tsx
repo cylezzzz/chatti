@@ -1,34 +1,29 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useApp } from '@/app/contexts/AppContext';
 import Sidebar from './Sidebar';
 import ChatInterface from './ChatInterface';
 import { cn } from '@/lib/utils';
 import { Menu } from 'lucide-react';
+import AgentStartupPopup from './AgentStartupPopup';
 // import LoginForm from './LoginForm'; // bleibt auskommentiert
 
 const authDisabled = process.env.NEXT_PUBLIC_AUTH_DISABLED === 'true';
 
 export default function App() {
   const { state, dispatch } = useApp();
+  const [showStartup, setShowStartup] = useState(true);
 
   useEffect(() => {
     if (authDisabled) {
-      // Login hart deaktiviert
       dispatch({ type: 'SET_AUTH', payload: true });
-      return;
+    } else {
+      fetch('/api/auth/check')
+        .then((res) => dispatch({ type: 'SET_AUTH', payload: res.ok }))
+        .catch(() => dispatch({ type: 'SET_AUTH', payload: false }));
     }
-    // Auth normal checken (nur wenn /api/auth/check vorhanden ist)
-    fetch('/api/auth/check')
-      .then((res) => dispatch({ type: 'SET_AUTH', payload: res.ok }))
-      .catch(() => dispatch({ type: 'SET_AUTH', payload: false }));
   }, [dispatch]);
-
-  // Optional: Login aktivieren, falls Auth nicht deaktiviert ist
-  // if (!authDisabled && !state.isAuthenticated) {
-  //   return <LoginForm />;
-  // }
 
   const toggleSidebar = () => {
     dispatch({ type: 'TOGGLE_SIDEBAR', payload: !state.sidebarOpen });
@@ -36,7 +31,6 @@ export default function App() {
 
   return (
     <div className="flex h-screen bg-background relative">
-      {/* Sidebar nur anzeigen, wenn offen */}
       {state.sidebarOpen && (
         <div className="transition-all duration-300">
           <Sidebar />
@@ -52,7 +46,6 @@ export default function App() {
         <Menu size={20} />
       </button>
 
-      {/* Hauptinhalt */}
       <main
         className={cn(
           'flex-1 flex flex-col min-w-0 transition-all duration-300',
@@ -61,6 +54,9 @@ export default function App() {
       >
         <ChatInterface />
       </main>
+
+      {/* Startup model/agent check (after login) */}
+      <AgentStartupPopup open={showStartup} onClose={() => setShowStartup(false)} />
     </div>
   );
 }
